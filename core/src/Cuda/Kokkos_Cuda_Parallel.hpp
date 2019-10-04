@@ -175,6 +175,39 @@ class TeamPolicyInternal<Kokkos::Cuda, Properties...>
     return block_size / vector_length();
   }
 
+  template <class FunctorType, class Reducer>
+  int team_size_max(const FunctorType& f, const ParallelReduceTag&, const Reducer& r) const {
+    //typedef Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE,
+    //                              TeamPolicyInternal, FunctorType>
+     //   functor_analysis_type;
+    typedef Reducer reducer_type;
+    typedef Impl::ParallelReduce<FunctorType, TeamPolicy<Properties...>,
+                                 reducer_type>
+        closure_type;
+    typedef Impl::FunctorValueTraits<FunctorType, typename traits::work_tag>
+        functor_value_traits;
+
+    cudaFuncAttributes attr =
+        CudaParallelLaunch<closure_type, typename traits::launch_bounds>::
+            get_cuda_func_attributes();
+    int block_size =
+        Kokkos::Impl::cuda_get_max_block_size<FunctorType,
+                                              typename traits::launch_bounds>(
+            space().impl_internal_space_instance(), attr, f,
+            (size_t)vector_length(),
+            (size_t)team_scratch_size(0) + 2 * sizeof(double),
+            (size_t)thread_scratch_size(0) + sizeof(double) +
+                ((functor_value_traits::StaticValueSize != 0)
+                     ? 0
+                     : functor_value_traits::value_size(f)));
+
+    // Currently we require Power-of-2 team size for reductions.
+    int p2 = 1;
+    while (p2 <= block_size) p2 *= 2;
+    p2 /= 2;
+    return p2 / vector_length();
+  }
+
   template <class FunctorType>
   int team_size_max(const FunctorType& f, const ParallelReduceTag&) const {
     typedef Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE,
@@ -1945,7 +1978,7 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
           std::string("Kokkos::Impl::ParallelReduce< Cuda > bad team size"));
     }
     if (int(m_team_size) >
-        arg_policy.team_size_max(m_functor, ParallelReduceTag())) {
+        arg_policy.team_size_max(m_functor, ParallelReduceTag(), m_reducer)) {
       Kokkos::Impl::throw_runtime_exception(
           std::string("Kokkos::Impl::ParallelReduce< Cuda > requested too "
                       "large team size."));
