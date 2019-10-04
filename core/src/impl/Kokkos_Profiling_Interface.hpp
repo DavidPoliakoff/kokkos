@@ -59,7 +59,7 @@
 #include <impl/Kokkos_Profiling_DeviceInfo.hpp>
 
 #define KOKKOSP_INTERFACE_VERSION 20171029
-
+#define KOKKOS_ENABLE_TUNING // TODO DZP: this needs to be a proper build system option
 namespace Kokkos {
 namespace Profiling {
 
@@ -71,12 +71,12 @@ struct SpaceHandle {
 } // end namespace Profiling
 
 namespace Tuning {
-struct valueSet {
+struct ValueSet {
   int size;
   void* values;
 };
 
-struct valueRange {
+struct ValueRange {
   void* lower;
   void* upper;
   bool openLower;
@@ -87,7 +87,8 @@ struct VariableInfo {
   enum valueType {
     floating_point, // TODO DZP: single and double? One or the other?
     integer,
-    text
+    text,
+    boolean
   };
   enum statisticalCategory {
     categorical, // unordered distinct objects
@@ -107,11 +108,16 @@ struct VariableInfo {
   };
   */
   union setOrRange {
-    valueSet set;
-    valueRange range; 
+    ValueSet set;
+    ValueRange range; 
   };
+  valueType type;
+  statisticalCategory category;
+  candidateValueType valueQuantity;
   setOrRange  value;
 };
+
+// TODO DZP: VariableInfo subclasses to automate some of this
 
 struct VariableValue  {
   union value {
@@ -200,6 +206,18 @@ void initialize();
 void finalize();
 
 }  // namespace Profiling
+namespace Tuning  {
+void declareTuningVariable(const std::string& variableName, int uniqID, VariableInfo info); 
+
+void declareContextVariable(const std::string& variableName, int uniqID, VariableInfo info); 
+
+void declareContextVariableValues(int contextId, int count, int* uniqIds, VariableValue* values);
+
+void endContext(int contextId);
+
+void requestTuningVariableValues(int count, int* uniqIds, VariableValue* values);
+
+} // end namespace Tuning
 }  // namespace Kokkos
 
 #else
@@ -252,7 +270,7 @@ void declareContextVariableValues(int contextId, int count, int* uniqIds, Variab
 
 void endContext(int contextId);
 
-void requestTuningVariableValues(int count, int* uniqIds, VariableValues* values);
+void requestTuningVariableValues(int count, int* uniqIds, VariableValue* values);
 
 } // end namespace Tuning
 } // end namespace Kokkos

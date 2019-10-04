@@ -298,7 +298,7 @@ void CudaInternal::initialize(int cuda_device_id, cudaStream_t stream) {
         "initialized");
     throw_runtime_exception(msg);
   }
-
+  
   const CudaInternalDevices &dev_info = CudaInternalDevices::singleton();
 
   const bool ok_init = 0 == m_scratchSpace || 0 == m_scratchFlags;
@@ -429,7 +429,16 @@ void CudaInternal::initialize(int cuda_device_id, cudaStream_t stream) {
                                 sizeof(uint32_t) * buffer_bound));
     }
     //----------------------------------
-
+    // Declare Tuning Variables
+#ifdef KOKKOS_ENABLE_TUNING
+    Kokkos::Tuning::VariableInfo block_size;
+    block_size.type = Kokkos::Tuning::VariableInfo::valueType::integer;
+    block_size.category = Kokkos::Tuning::VariableInfo::statisticalCategory::ratio;
+    block_size.valueQuantity = Kokkos::Tuning::VariableInfo::candidateValueType::set; 
+    int block_sizes[] = {1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096}; 
+    block_size.value.set = Kokkos::Tuning::ValueSet { 13, (void*)block_sizes };
+    Kokkos::Tuning::declareTuningVariable("kokkos.cuda.block_size", 0 /** TODO DZP: "getNewTuningVariableUniqueId */, block_size);
+#endif
   } else {
     std::ostringstream msg;
     msg << "Kokkos::Cuda::initialize(" << cuda_device_id << ") FAILED";
