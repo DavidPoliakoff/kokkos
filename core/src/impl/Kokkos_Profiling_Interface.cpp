@@ -93,6 +93,7 @@ namespace Profiling {
 SpaceHandle::SpaceHandle(const char* space_name) {
   strncpy(name, space_name, 64);
 }
+
 bool profileLibraryLoaded() { return (nullptr != initProfileLibrary); }
 
 void beginParallelFor(const std::string& kernelPrefix, const uint32_t devID,
