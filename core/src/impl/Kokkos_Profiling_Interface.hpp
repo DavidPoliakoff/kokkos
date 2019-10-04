@@ -69,6 +69,64 @@ struct SpaceHandle {
   char name[64];
 };
 
+} // end namespace Profiling
+
+namespace Tuning {
+struct valueSet {
+  int size;
+  void* values;
+};
+
+struct valueRange {
+  void* lower;
+  void* upper;
+  bool openLower;
+  bool openUpper;
+};
+
+struct VariableInfo {
+  enum valueType {
+    floating_point, // TODO DZP: single and double? One or the other?
+    integer,
+    text
+  };
+  enum statisticalCategory {
+    categorical, // unordered distinct objects
+    ordinal,     // ordered distinct objects
+    interval,    // ordered distinct objects for which distance matters
+    ratio        // ordered distinct objects for which distance matters, division matters, and the concept of zero exists
+  };
+  enum candidateValueType {
+    set,
+    range
+    // TODO DZP: not handled: 1 + 3x, sets of ranges, range with hole (zero). Do these matter?
+  };
+  /** 
+  enum candidateValueQuantity {
+    point,
+    list,
+  };
+  */
+  union setOrRange {
+    valueSet set;
+    valueRange range; 
+  };
+  setOrRange  value;
+};
+
+struct VariableValue  {
+  union value {
+     int int_value;
+     double double_value;
+     char* string_value;
+  };
+};
+
+
+} // end namespace Tuning
+
+namespace Profiling {
+
 typedef void (*initFunction)(const int,
                              const uint64_t,
                              const uint32_t,
@@ -95,7 +153,18 @@ typedef void (*beginDeepCopyFunction)(
     SpaceHandle, const char*, const void*,
     uint64_t);
 typedef void (*endDeepCopyFunction)();
+} //end namespace Profiling
 
+namespace Tuning {
+typedef void (*tuningVariableDeclarationFunction)(const std::string&, const int&, VariableInfo info); 
+typedef void (*contextVariableDeclarationFunction)(const std::string&, const int&, VariableInfo info); 
+typedef void(*tuningVariableValueFunction)(const int count, const int* uniqIds, VariableValue*);
+typedef void (*contextVariableValueFunction)(const int& contextId, const int& count, const int* uniqIds, VariableValue* values);
+typedef void (*contextEndFunction)(const int&);
+
+} // end namespace Tuning
+
+namespace Profiling {
 bool profileLibraryLoaded();
 
 void beginParallelFor(const std::string& kernelPrefix, const uint32_t devID, uint64_t* kernelID);
@@ -126,7 +195,10 @@ void endDeepCopy();
 void initialize();
 void finalize();
 
-}
+} // namespace Profiling
+
+
+
 }
 
 #else
@@ -169,9 +241,21 @@ void endDeepCopy();
 void initialize();
 void finalize();
 
-}
-}
+} // end namespace Profiling
+namespace Tuning  {
+void declareTuningVariable(const std::string& variableName, int uniqID, VariableInfo info); 
 
+void declareContextVariable(const std::string& variableName, int uniqID, VariableInfo info); 
+
+void declareContextVariableValues(int contextId, int count, int* uniqIds, VariableValue* values);
+
+void endContext(int contextId);
+
+void requestTuningVariableValues(int count, int* uniqIds, VariableValues* values);
+
+
+} // end namespace Tuning
+} // end namespace Kokkos
 #endif
 #endif
 
