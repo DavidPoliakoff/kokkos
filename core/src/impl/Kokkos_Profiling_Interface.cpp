@@ -101,6 +101,11 @@ void beginParallelFor(const std::string& kernelPrefix, const uint32_t devID,
   if (nullptr != beginForCallee) {
     Kokkos::fence();
     (*beginForCallee)(kernelPrefix.c_str(), devID, kernelID);
+#ifdef KOKKOS_ENABLE_TUNING
+    int uniqIds[] = {2,3};
+    Kokkos::Tuning::VariableValue contextValues[] = { Kokkos::Tuning::make_variable_value(kernelPrefix.c_str()), Kokkos::Tuning::make_variable_value("parallel_for") };
+    Kokkos::Tuning::declareContextVariableValues(0 /** TODO DZP: make context id's work */, 2, uniqIds , contextValues);
+#endif
   }
 }
 
@@ -108,6 +113,9 @@ void endParallelFor(const uint64_t kernelID) {
   if (nullptr != endForCallee) {
     Kokkos::fence();
     (*endForCallee)(kernelID);
+#ifdef KOKKOS_ENABLE_TUNING
+    Kokkos::Tuning::endContext(0);
+#endif
   }
 }
 
@@ -116,6 +124,11 @@ void beginParallelScan(const std::string& kernelPrefix, const uint32_t devID,
   if (nullptr != beginScanCallee) {
     Kokkos::fence();
     (*beginScanCallee)(kernelPrefix.c_str(), devID, kernelID);
+#ifdef KOKKOS_ENABLE_TUNING
+    int uniqIds[] = {2,3};
+    Kokkos::Tuning::VariableValue contextValues[] = { Kokkos::Tuning::make_variable_value(kernelPrefix.c_str()), Kokkos::Tuning::make_variable_value("parallel_scan") };
+    Kokkos::Tuning::declareContextVariableValues(0 /** TODO DZP: make context id's work */, 2, uniqIds , contextValues);
+#endif
   }
 }
 
@@ -123,6 +136,9 @@ void endParallelScan(const uint64_t kernelID) {
   if (nullptr != endScanCallee) {
     Kokkos::fence();
     (*endScanCallee)(kernelID);
+#ifdef KOKKOS_ENABLE_TUNING
+    Kokkos::Tuning::endContext(0);
+#endif
   }
 }
 
@@ -131,6 +147,11 @@ void beginParallelReduce(const std::string& kernelPrefix, const uint32_t devID,
   if (nullptr != beginReduceCallee) {
     Kokkos::fence();
     (*beginReduceCallee)(kernelPrefix.c_str(), devID, kernelID);
+#ifdef KOKKOS_ENABLE_TUNING
+    int uniqIds[] = {2,3};
+    Kokkos::Tuning::VariableValue contextValues[] = { Kokkos::Tuning::make_variable_value(kernelPrefix.c_str()), Kokkos::Tuning::make_variable_value("parallel_reduce") };
+    Kokkos::Tuning::declareContextVariableValues(0 /** TODO DZP: make context id's work */, 2, uniqIds , contextValues);
+#endif
   }
 }
 
@@ -139,6 +160,9 @@ void endParallelReduce(const uint64_t kernelID) {
     Kokkos::fence();
     (*endReduceCallee)(kernelID);
   }
+#ifdef KOKKOS_ENABLE_TUNING
+    Kokkos::Tuning::endContext(0);
+#endif
 }
 
 void pushRegion(const std::string& kName) {
@@ -176,12 +200,20 @@ void beginDeepCopy(const SpaceHandle dst_space, const std::string dst_label,
   if (nullptr != beginDeepCopyCallee) {
     (*beginDeepCopyCallee)(dst_space, dst_label.c_str(), dst_ptr, src_space,
                            src_label.c_str(), src_ptr, size);
+#ifdef KOKKOS_ENABLE_TUNING
+    int uniqIds[] = {2,3};
+    Kokkos::Tuning::VariableValue contextValues[] = { Kokkos::Tuning::make_variable_value("deep_copy_kernel"), Kokkos::Tuning::make_variable_value("deep_copy") }; // TODO DZP: should deep copy have context variables for source and destination features?
+    Kokkos::Tuning::declareContextVariableValues(0 /** TODO DZP: make context id's work */, 2, uniqIds , contextValues);
+#endif
   }
 }
 
 void endDeepCopy() {
   if (nullptr != endDeepCopyCallee) {
     (*endDeepCopyCallee)();
+#ifdef KOKKOS_ENABLE_TUNING
+    Kokkos::Tuning::endContext(0);
+#endif
   }
 }
 

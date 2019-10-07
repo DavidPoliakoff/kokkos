@@ -121,13 +121,21 @@ struct VariableInfo {
 // TODO DZP: VariableInfo subclasses to automate some of this
 
 struct VariableValue  {
-  union value {
+  union ValueUnion {
      int int_value;
      double double_value;
      char* string_value;
   };
+  ValueUnion value;
+  VariableValue(int val) { value.int_value = val; }
+  VariableValue(double val) { value.double_value = val; }
+  VariableValue(char* val) { value.string_value = val; }
 };
 
+template<typename T>
+VariableValue make_variable_value(T&& in){
+  return VariableValue(std::forward<T>(in));        
+}
 
 } // end namespace Tuning
 
