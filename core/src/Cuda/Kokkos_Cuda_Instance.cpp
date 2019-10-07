@@ -443,7 +443,7 @@ void CudaInternal::initialize(int cuda_device_id, cudaStream_t stream) {
     Kokkos::Tuning::VariableInfo store_functor_in_constant_memory;
     store_functor_in_constant_memory.type = Kokkos::Tuning::VariableInfo::valueType::boolean;
     store_functor_in_constant_memory.category = Kokkos::Tuning::VariableInfo::statisticalCategory::categorical;
-    store_functor_in_constant_memory.valueQuantity = Kokkos::Tuning::VariableInfo::valueQuantity::set;
+    store_functor_in_constant_memory.valueQuantity = Kokkos::Tuning::VariableInfo::candidateValueType::set;
 
     bool boolean_values[] = { true, false };
 

@@ -130,6 +130,7 @@ struct VariableValue  {
   VariableValue(int val) { value.int_value = val; }
   VariableValue(double val) { value.double_value = val; }
   VariableValue(char* val) { value.string_value = val; }
+  VariableValue(const char* val) { value.string_value = const_cast<char*>(val); }
 };
 
 template<typename T>
@@ -225,6 +226,8 @@ void declareContextVariableValues(int contextId, int count, int* uniqIds, Variab
 void endContext(int contextId);
 
 void requestTuningVariableValues(int count, int* uniqIds, VariableValue* values);
+
+bool haveTuningTool();
 
 } // end namespace Tuning
 }  // namespace Kokkos

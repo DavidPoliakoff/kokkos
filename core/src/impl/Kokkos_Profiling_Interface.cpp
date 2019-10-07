@@ -281,7 +281,10 @@ void endContext(int contextId){
   }
 }
 
-  
+bool haveTuningTool(){
+  return (nullptr!=tuningVariableValueCallee);        
+} 
+
 } // end namespace Tuning
 
 namespace Profiling {
