@@ -97,8 +97,9 @@ struct VariableInfo {
     ratio        // ordered distinct objects for which distance matters, division matters, and the concept of zero exists
   };
   enum candidateValueType {
-    set,
-    range
+    set,        // I am one of [2,3,4,5]
+    range,      // I am somewhere in [2,12)
+    unbounded   // I am text, but we don't know at declaration time what values are appropriate. Only valid for Context Variables
     // TODO DZP: not handled: 1 + 3x, sets of ranges, range with hole (zero). Do these matter?
   };
   /** 

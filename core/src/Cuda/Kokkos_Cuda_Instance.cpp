@@ -431,13 +431,26 @@ void CudaInternal::initialize(int cuda_device_id, cudaStream_t stream) {
     //----------------------------------
     // Declare Tuning Variables
 #ifdef KOKKOS_ENABLE_TUNING
+
     Kokkos::Tuning::VariableInfo block_size;
+
     block_size.type = Kokkos::Tuning::VariableInfo::valueType::integer;
     block_size.category = Kokkos::Tuning::VariableInfo::statisticalCategory::ratio;
     block_size.valueQuantity = Kokkos::Tuning::VariableInfo::candidateValueType::set; 
-    int block_sizes[] = {1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096}; 
+    int block_sizes[] = { 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096 }; 
     block_size.value.set = Kokkos::Tuning::ValueSet { 13, (void*)block_sizes };
+
+    Kokkos::Tuning::VariableInfo store_functor_in_constant_memory;
+    store_functor_in_constant_memory.type = Kokkos::Tuning::VariableInfo::valueType::boolean;
+    store_functor_in_constant_memory.category = Kokkos::Tuning::VariableInfo::statisticalCategory::categorical;
+    store_functor_in_constant_memory.valueQuantity = Kokkos::Tuning::VariableInfo::valueQuantity::set;
+
+    bool boolean_values[] = { true, false };
+
+    store_functor_in_constant_memory.value.set = Kokkos::Tuning::ValueSet { 2, (void*)boolean_values };
+     
     Kokkos::Tuning::declareTuningVariable("kokkos.cuda.block_size", 0 /** TODO DZP: "getNewTuningVariableUniqueId */, block_size);
+    Kokkos::Tuning::declareTuningVariable("kokkos.cuda.store_functor_in_constant_memory", 1, store_functor_in_constant_memory);
 #endif
   } else {
     std::ostringstream msg;

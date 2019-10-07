@@ -340,7 +340,7 @@ void initialize() {
 
       auto p19           = dlsym(firstProfileLibrary, "kokkosp_profile_event");
       profileEventCallee = *((profileEventFunction*)&p19);
-
+      
       // TODO DZP: move to its own section
       auto p20           = dlsym(firstProfileLibrary, "kokkosp_declare_tuning_variable");
       Kokkos::Tuning::tuningVariableDeclarationCallee = *((Kokkos::Tuning::tuningVariableDeclarationFunction*)&p20);
@@ -352,6 +352,25 @@ void initialize() {
       Kokkos::Tuning::tuningVariableValueCallee = *((Kokkos::Tuning::tuningVariableValueFunction*)&p23);
       auto p24           = dlsym(firstProfileLibrary, "kokkosp_end_context");
       Kokkos::Tuning::contextEndCallee = *((Kokkos::Tuning::contextEndFunction*)&p24);
+      
+      Kokkos::Tuning::VariableInfo kernel_name;
+      kernel_name.type = Kokkos::Tuning::VariableInfo::valueType::text;
+      kernel_name.category = Kokkos::Tuning::VariableInfo::statisticalCategory::categorical;
+      kernel_name.valueQuantity = Kokkos::Tuning::VariableInfo::candidateValueType::unbounded;
+      
+      Kokkos::Tuning::declareContextVariable("kokkos.kernel_name", 2 /** TODO DZP: getUniqueId */, kernel_name);
+
+      Kokkos::Tuning::VariableInfo kernel_type;
+      kernel_type.type = Kokkos::Tuning::VariableInfo::valueType::text;
+      kernel_type.category = Kokkos::Tuning::VariableInfo::statisticalCategory::categorical;
+      kernel_type.valueQuantity = Kokkos::Tuning::VariableInfo::candidateValueType::set;
+      
+      const char* names[] = {"parallel_reduce","parallel_for","parallel_scan","deep_copy"};
+
+      kernel_type.value.set = Kokkos::Tuning::ValueSet {4,(reinterpret_cast<void*>(names))};
+
+      Kokkos::Tuning::declareContextVariable("kokkos.kernel_type", 3, kernel_type);
+
     }
   }
 
