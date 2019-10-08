@@ -58,7 +58,7 @@
 
 #include <impl/Kokkos_Profiling_DeviceInfo.hpp>
 
-#define KOKKOSP_INTERFACE_VERSION 20171029
+#define KOKKOSP_INTERFACE_VERSION 20191080
 #define KOKKOS_ENABLE_TUNING // TODO DZP: this needs to be a proper build system option
 namespace Kokkos {
 namespace Profiling {
