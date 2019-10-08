@@ -170,11 +170,11 @@ typedef void (*endDeepCopyFunction)();
 } //end namespace Profiling
 
 namespace Tuning {
-typedef void (*tuningVariableDeclarationFunction)(const std::string&, const int&, VariableInfo info); 
-typedef void (*contextVariableDeclarationFunction)(const std::string&, const int&, VariableInfo info); 
-typedef void(*tuningVariableValueFunction)(const int count, const int* uniqIds, VariableValue*);
-typedef void (*contextVariableValueFunction)(const int& contextId, const int& count, const int* uniqIds, VariableValue* values);
-typedef void (*contextEndFunction)(const int&);
+typedef void (*tuningVariableDeclarationFunction)(const char*, const size_t&, VariableInfo info); 
+typedef void (*contextVariableDeclarationFunction)(const char*, const size_t&, VariableInfo info); 
+typedef void(*tuningVariableValueFunction)(const size_t count, const size_t* uniqIds, VariableValue*);
+typedef void (*contextVariableValueFunction)(const size_t& contextId, const size_t& count, const size_t* uniqIds, VariableValue* values);
+typedef void (*contextEndFunction)(const size_t&);
 
 } // end namespace Tuning
 
@@ -217,15 +217,15 @@ void finalize();
 
 }  // namespace Profiling
 namespace Tuning  {
-void declareTuningVariable(const std::string& variableName, int uniqID, VariableInfo info); 
+void declareTuningVariable(const std::string& variableName, size_t uniqID, VariableInfo info); 
 
-void declareContextVariable(const std::string& variableName, int uniqID, VariableInfo info); 
+void declareContextVariable(const std::string& variableName, size_t uniqID, VariableInfo info); 
 
-void declareContextVariableValues(int contextId, int count, int* uniqIds, VariableValue* values);
+void declareContextVariableValues(size_t contextId, size_t count, size_t* uniqIds, VariableValue* values);
 
-void endContext(int contextId);
+void endContext(size_t contextId);
 
-void requestTuningVariableValues(int count, int* uniqIds, VariableValue* values);
+void requestTuningVariableValues(size_t count, size_t* uniqIds, VariableValue* values);
 
 bool haveTuningTool();
 
