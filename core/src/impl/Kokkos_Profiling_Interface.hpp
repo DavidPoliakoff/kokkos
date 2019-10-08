@@ -170,11 +170,11 @@ typedef void (*endDeepCopyFunction)();
 } //end namespace Profiling
 
 namespace Tuning {
-typedef void (*tuningVariableDeclarationFunction)(const char*, const size_t&, VariableInfo info); 
-typedef void (*contextVariableDeclarationFunction)(const char*, const size_t&, VariableInfo info); 
+typedef void (*tuningVariableDeclarationFunction)(const char*, const size_t, VariableInfo info); 
+typedef void (*contextVariableDeclarationFunction)(const char*, const size_t, VariableInfo info); 
 typedef void(*tuningVariableValueFunction)(const size_t count, const size_t* uniqIds, VariableValue*);
-typedef void (*contextVariableValueFunction)(const size_t& contextId, const size_t& count, const size_t* uniqIds, VariableValue* values);
-typedef void (*contextEndFunction)(const size_t&);
+typedef void (*contextVariableValueFunction)(const size_t contextId, const size_t count, const size_t* uniqIds, VariableValue* values);
+typedef void (*contextEndFunction)(const size_t);
 
 } // end namespace Tuning
 
