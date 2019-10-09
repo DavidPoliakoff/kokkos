@@ -53,10 +53,9 @@
 #include <iostream>
 #include <cstdlib>
 
-#if defined(KOKKOS_ENABLE_PROFILING)
-#include <dlfcn.h>
-
 #include <impl/Kokkos_Profiling_DeviceInfo.hpp>
+#include <impl/Kokkos_Profiling_DeviceInfo.hpp>
+#include <impl/Kokkos_Profiling_C_Interface.h>
 #include <impl/Kokkos_Profiling_C_Interface.h>
 #define KOKKOS_ENABLE_TUNING // TODO DZP: this needs to be a proper build system option
 namespace Kokkos {
@@ -123,7 +122,7 @@ using contextEndFunction                 = Kokkos_Tuning_contextEndFunction;
 
 }  // namespace Kokkos
 
-#else
+#if 0 //TODO DZP: reimplement or set on fire
 namespace Kokkos {
 namespace Profiling {
 

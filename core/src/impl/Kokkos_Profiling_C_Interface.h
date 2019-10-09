@@ -44,6 +44,14 @@
 #ifndef KOKKOS_PROFILING_C_INTERFACE_HPP
 #define KOKKOS_PROFILING_C_INTERFACE_HPP
 
+#ifdef __cplusplus
+#include <cstddef>
+#include <cstdint>
+#else
+#include <stddef.h>
+#include <stdint.h>
+#endif
+
 #define KOKKOSP_INTERFACE_VERSION 20191080
 
 struct Kokkos_Profiling_KokkosPDeviceInfo {
