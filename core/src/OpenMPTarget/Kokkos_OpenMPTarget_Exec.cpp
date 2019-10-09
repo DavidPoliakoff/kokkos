@@ -49,7 +49,7 @@
 #include <impl/Kokkos_Error.hpp>
 #include <iostream>
 #include <impl/Kokkos_CPUDiscovery.hpp>
-#include <impl/Kokkos_Profiling_Interface.hpp>
+#include <impl/Kokkos_Profiling.hpp>
 
 #ifdef KOKKOS_ENABLE_OPENMPTARGET
 

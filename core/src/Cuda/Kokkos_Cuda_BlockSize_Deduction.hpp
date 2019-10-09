@@ -49,7 +49,7 @@
 
 #include <iostream>
 #include <Cuda/Kokkos_Cuda_Error.hpp>
-#include <impl/Kokkos_Profiling_Interface.hpp>
+#include <impl/Kokkos_Profiling.hpp>
 namespace Kokkos {
 namespace Impl {
 

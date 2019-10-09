@@ -44,7 +44,7 @@
 #include <algorithm>
 #include <Kokkos_Macros.hpp>
 #if defined(KOKKOS_ENABLE_PROFILING)
-#include <impl/Kokkos_Profiling_Interface.hpp>
+#include <impl/Kokkos_Profiling.hpp>
 #endif
 
 /*--------------------------------------------------------------------------*/

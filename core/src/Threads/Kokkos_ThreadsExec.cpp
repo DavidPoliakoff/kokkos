@@ -54,7 +54,7 @@
 
 #include <impl/Kokkos_Error.hpp>
 #include <impl/Kokkos_CPUDiscovery.hpp>
-#include <impl/Kokkos_Profiling_Interface.hpp>
+#include <impl/Kokkos_Profiling.hpp>
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
