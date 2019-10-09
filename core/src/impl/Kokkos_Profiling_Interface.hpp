@@ -57,124 +57,85 @@
 #include <dlfcn.h>
 
 #include <impl/Kokkos_Profiling_DeviceInfo.hpp>
-
-#define KOKKOSP_INTERFACE_VERSION 20191080
+#include <impl/Kokkos_Profiling_C_Interface.h>
 #define KOKKOS_ENABLE_TUNING // TODO DZP: this needs to be a proper build system option
 namespace Kokkos {
 namespace Profiling {
 
-struct SpaceHandle {
-  SpaceHandle(const char* space_name);
-  char name[64];
-};
+using SpaceHandle = Kokkos_Profiling_SpaceHandle;
 
 } // end namespace Profiling
 
 namespace Tuning {
-struct ValueSet {
-  int size;
-  void* values;
-};
 
-struct ValueRange {
-  void* lower;
-  void* upper;
-  bool openLower;
-  bool openUpper;
-};
+using ValueSet = Kokkos_Tuning_ValueSet;
 
-struct VariableInfo {
-  enum valueType {
-    floating_point, // TODO DZP: single and double? One or the other?
-    integer,
-    text,
-    boolean
-  };
-  enum statisticalCategory {
-    categorical, // unordered distinct objects
-    ordinal,     // ordered distinct objects
-    interval,    // ordered distinct objects for which distance matters
-    ratio        // ordered distinct objects for which distance matters, division matters, and the concept of zero exists
-  };
-  enum candidateValueType {
-    set,        // I am one of [2,3,4,5]
-    range,      // I am somewhere in [2,12)
-    unbounded   // I am text, but we don't know at declaration time what values are appropriate. Only valid for Context Variables
-    // TODO DZP: not handled: 1 + 3x, sets of ranges, range with hole (zero). Do these matter?
-  };
-  /** 
-  enum candidateValueQuantity {
-    point,
-    list,
-  };
-  */
-  union setOrRange {
-    ValueSet set;
-    ValueRange range; 
-  };
-  valueType type;
-  statisticalCategory category;
-  candidateValueType valueQuantity;
-  setOrRange  value;
-};
+using ValueRange = Kokkos_Tuning_ValueRange;
 
+using StatisticalCategory = Kokkos_Tuning_VariableInfo_StatisticalCategory;
+
+using ValueType = Kokkos_Tuning_VariableInfo_ValueType;
+
+using CandidateValueType = Kokkos_Tuning_VariableInfo_CandidateValueType;
+
+using SetOrRange = Kokkos_Tuning_VariableInfo_SetOrRange;
+
+using VariableInfo = Kokkos_Tuning_VariableInfo;
 // TODO DZP: VariableInfo subclasses to automate some of this
 
-struct VariableValue  {
-  union ValueUnion {
-     int int_value;
-     double double_value;
-     char* string_value;
-  };
-  ValueUnion value;
-  VariableValue(int val) { value.int_value = val; }
-  VariableValue(double val) { value.double_value = val; }
-  VariableValue(char* val) { value.string_value = val; }
-  VariableValue(const char* val) { value.string_value = const_cast<char*>(val); }
-};
+using VariableValue = Kokkos_Tuning_VariableValue;
+
+namespace impl {
+  VariableValue make_variable_value(int val) {
+    VariableValue variable_value;
+    variable_value.value.int_value = val; 
+    return variable_value;
+  }
+  VariableValue make_variable_value (double val) {
+    VariableValue variable_value;
+    variable_value.value.double_value = val; 
+    return variable_value;
+  }
+  VariableValue make_variable_value(const char* val) {
+    VariableValue variable_value;
+    variable_value.value.string_value = val; 
+    return variable_value;
+  }
+}
 
 template<typename T>
 VariableValue make_variable_value(T&& in){
-  return VariableValue(std::forward<T>(in));        
+  return impl::make_variable_value(std::forward<T>(in));        
 }
 
 } // end namespace Tuning
 
 namespace Profiling {
 
-typedef void (*initFunction)(const int, const uint64_t, const uint32_t,
-                             KokkosPDeviceInfo*);
-typedef void (*finalizeFunction)();
-typedef void (*beginFunction)(const char*, const uint32_t, uint64_t*);
-typedef void (*endFunction)(uint64_t);
+using initFunction = Kokkos_Profiling_initFunction;
+using finalizeFunction = Kokkos_Profiling_finalizeFunction;
+using beginFunction = Kokkos_Profiling_beginFunction;
+using endFunction = Kokkos_Profiling_endFunction;
+using pushFunction = Kokkos_Profiling_pushFunction;
+using popFunction = Kokkos_Profiling_popFunction;
+using allocateDataFunction = Kokkos_Profiling_allocateDataFunction;
+using deallocateDataFunction = Kokkos_Profiling_deallocateDataFunction;
+using createProfileSectionFunction = Kokkos_Profiling_createProfileSectionFunction;
+using startProfileSectionFunction = Kokkos_Profiling_startProfileSectionFunction;
+using stopProfileSectionFunction = Kokkos_Profiling_stopProfileSectionFunction;
+using destroyProfileSectionFunction =  Kokkos_Profiling_destroyProfileSectionFunction;
+using profileEventFunction =  Kokkos_Profiling_profileEventFunction;
+using beginDeepCopyFunction = Kokkos_Profiling_beginDeepCopyFunction;
+using endDeepCopyFunction = Kokkos_Profiling_endDeepCopyFunction;
 
-typedef void (*pushFunction)(const char*);
-typedef void (*popFunction)();
-
-typedef void (*allocateDataFunction)(const SpaceHandle, const char*,
-                                     const void*, const uint64_t);
-typedef void (*deallocateDataFunction)(const SpaceHandle, const char*,
-                                       const void*, const uint64_t);
-
-typedef void (*createProfileSectionFunction)(const char*, uint32_t*);
-typedef void (*startProfileSectionFunction)(const uint32_t);
-typedef void (*stopProfileSectionFunction)(const uint32_t);
-typedef void (*destroyProfileSectionFunction)(const uint32_t);
-
-typedef void (*profileEventFunction)(const char*);
-
-typedef void (*beginDeepCopyFunction)(SpaceHandle, const char*, const void*,
-                                      SpaceHandle, const char*, const void*,
-                                      uint64_t);
-typedef void (*endDeepCopyFunction)();
 } //end namespace Profiling
 
 namespace Tuning {
-typedef void (*tuningVariableDeclarationFunction)(const char*, const size_t, VariableInfo info); 
-typedef void (*contextVariableDeclarationFunction)(const char*, const size_t, VariableInfo info); 
-typedef void(*tuningVariableValueFunction)(const size_t count, const size_t* uniqIds, VariableValue*);
-typedef void (*contextVariableValueFunction)(const size_t contextId, const size_t count, const size_t* uniqIds, VariableValue* values);
-typedef void (*contextEndFunction)(const size_t);
+using tuningVariableDeclarationFunction  = Kokkos_Tuning_tuningVariableDeclarationFunction; 
+using contextVariableDeclarationFunction = Kokkos_Tuning_contextVariableDeclarationFunction;  
+using tuningVariableValueFunction        = Kokkos_Tuning_tuningVariableValueFunction;
+using contextVariableValueFunction       = Kokkos_Tuning_contextVariableValueFunction;
+using contextEndFunction                 = Kokkos_Tuning_contextEndFunction;
 
 } // end namespace Tuning
 

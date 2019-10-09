@@ -315,7 +315,7 @@ SharedAllocationRecord<Kokkos::HostSpace, void>::~SharedAllocationRecord() {
 #if defined(KOKKOS_ENABLE_PROFILING)
   if (Kokkos::Profiling::profileLibraryLoaded()) {
     Kokkos::Profiling::deallocateData(
-        Kokkos::Profiling::SpaceHandle(Kokkos::HostSpace::name()),
+        kokkos_profiling_make_space_handle(Kokkos::HostSpace::name()),
         RecordBase::m_alloc_ptr->m_label, data(), size());
   }
 #endif
@@ -341,7 +341,7 @@ SharedAllocationRecord<Kokkos::HostSpace, void>::SharedAllocationRecord(
 #if defined(KOKKOS_ENABLE_PROFILING)
   if (Kokkos::Profiling::profileLibraryLoaded()) {
     Kokkos::Profiling::allocateData(
-        Kokkos::Profiling::SpaceHandle(arg_space.name()), arg_label, data(),
+        kokkos_profiling_make_space_handle(arg_space.name()), arg_label, data(),
         arg_alloc_size);
   }
 #endif

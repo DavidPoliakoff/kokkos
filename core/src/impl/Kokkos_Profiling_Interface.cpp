@@ -90,10 +90,6 @@ static contextEndFunction contextEndCallee = nullptr;
 
 namespace Profiling {
 
-SpaceHandle::SpaceHandle(const char* space_name) {
-  strncpy(name, space_name, 64);
-}
-
 bool profileLibraryLoaded() { return (nullptr != initProfileLibrary); }
 
 void beginParallelFor(const std::string& kernelPrefix, const uint32_t devID,
@@ -389,16 +385,16 @@ void initialize() {
       Kokkos::Tuning::contextEndCallee = *((Kokkos::Tuning::contextEndFunction*)&p24);
       
       Kokkos::Tuning::VariableInfo kernel_name;
-      kernel_name.type = Kokkos::Tuning::VariableInfo::valueType::text;
-      kernel_name.category = Kokkos::Tuning::VariableInfo::statisticalCategory::categorical;
-      kernel_name.valueQuantity = Kokkos::Tuning::VariableInfo::candidateValueType::unbounded;
+      kernel_name.type = Kokkos::Tuning::ValueType::text;
+      kernel_name.category = Kokkos::Tuning::StatisticalCategory::categorical;
+      kernel_name.valueQuantity = Kokkos::Tuning::CandidateValueType::unbounded;
       
       Kokkos::Tuning::declareContextVariable("kokkos.kernel_name", 2 /** TODO DZP: getUniqueId */, kernel_name);
 
       Kokkos::Tuning::VariableInfo kernel_type;
-      kernel_type.type = Kokkos::Tuning::VariableInfo::valueType::text;
-      kernel_type.category = Kokkos::Tuning::VariableInfo::statisticalCategory::categorical;
-      kernel_type.valueQuantity = Kokkos::Tuning::VariableInfo::candidateValueType::set;
+      kernel_type.type = Kokkos::Tuning::ValueType::text;
+      kernel_type.category = Kokkos::Tuning::StatisticalCategory::categorical;
+      kernel_type.valueQuantity = Kokkos::Tuning::CandidateValueType::set;
       
       const char* names[] = {"parallel_reduce","parallel_for","parallel_scan","deep_copy"};
 
