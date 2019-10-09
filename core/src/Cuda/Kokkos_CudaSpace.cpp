@@ -363,7 +363,7 @@ SharedAllocationRecord<Kokkos::CudaSpace, void>::~SharedAllocationRecord() {
         &header, RecordBase::m_alloc_ptr, sizeof(SharedAllocationHeader));
 
     Kokkos::Profiling::deallocateData(
-        kokkos_profiling_make_space_handle(Kokkos::CudaSpace::name()),
+        Kokkos::Profiling::make_space_handle(Kokkos::CudaSpace::name()),
         header.m_label, data(), size());
   }
 #endif
@@ -377,7 +377,7 @@ SharedAllocationRecord<Kokkos::CudaUVMSpace, void>::~SharedAllocationRecord() {
   if (Kokkos::Profiling::profileLibraryLoaded()) {
     Cuda::impl_static_fence();  // Make sure I can access the label ...
     Kokkos::Profiling::deallocateData(
-        kokkos_profiling_make_space_handle(Kokkos::CudaUVMSpace::name()),
+        Kokkos::Profiling::make_space_handle(Kokkos::CudaUVMSpace::name()),
         RecordBase::m_alloc_ptr->m_label, data(), size());
   }
 #endif
@@ -391,7 +391,7 @@ SharedAllocationRecord<Kokkos::CudaHostPinnedSpace,
 #if defined(KOKKOS_ENABLE_PROFILING)
   if (Kokkos::Profiling::profileLibraryLoaded()) {
     Kokkos::Profiling::deallocateData(
-        kokkos_profiling_make_space_handle(Kokkos::CudaHostPinnedSpace::name()),
+        Kokkos::Profiling::make_space_handle(Kokkos::CudaHostPinnedSpace::name()),
         RecordBase::m_alloc_ptr->m_label, data(), size());
   }
 #endif
@@ -418,7 +418,7 @@ SharedAllocationRecord<Kokkos::CudaSpace, void>::SharedAllocationRecord(
 #if defined(KOKKOS_ENABLE_PROFILING)
   if (Kokkos::Profiling::profileLibraryLoaded()) {
     Kokkos::Profiling::allocateData(
-        kokkos_profiling_make_space_handle(arg_space.name()), arg_label, data(),
+        Kokkos::Profiling::make_space_handle(arg_space.name()), arg_label, data(),
         arg_alloc_size);
   }
 #endif
@@ -456,7 +456,7 @@ SharedAllocationRecord<Kokkos::CudaUVMSpace, void>::SharedAllocationRecord(
 #if defined(KOKKOS_ENABLE_PROFILING)
   if (Kokkos::Profiling::profileLibraryLoaded()) {
     Kokkos::Profiling::allocateData(
-        kokkos_profiling_make_space_handle(arg_space.name()), arg_label, data(),
+        Kokkos::Profiling::make_space_handle(arg_space.name()), arg_label, data(),
         arg_alloc_size);
   }
 #endif
@@ -491,7 +491,7 @@ SharedAllocationRecord<Kokkos::CudaHostPinnedSpace, void>::
 #if defined(KOKKOS_ENABLE_PROFILING)
   if (Kokkos::Profiling::profileLibraryLoaded()) {
     Kokkos::Profiling::allocateData(
-        kokkos_profiling_make_space_handle(arg_space.name()), arg_label, data(),
+        Kokkos::Profiling::make_space_handle(arg_space.name()), arg_label, data(),
         arg_alloc_size);
   }
 #endif

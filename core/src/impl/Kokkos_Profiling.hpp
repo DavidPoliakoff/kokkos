@@ -84,7 +84,7 @@ void endDeepCopy();
 void initialize();
 void finalize();
 
-Kokkos_Profiling_SpaceHandle kokkos_profiling_make_space_handle(const char* space_name);
+Kokkos_Profiling_SpaceHandle make_space_handle(const char* space_name);
 } // namespace Profiling
 
 namespace Tuning {

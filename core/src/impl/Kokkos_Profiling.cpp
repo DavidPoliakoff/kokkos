@@ -243,7 +243,7 @@ void markEvent(const std::string& eventName) {
   }
 }
 
-SpaceHandle kokkos_profiling_make_space_handle(const char* space_name){
+SpaceHandle make_space_handle(const char* space_name){
   SpaceHandle handle;
   handle.name = space_name;
   return handle;
