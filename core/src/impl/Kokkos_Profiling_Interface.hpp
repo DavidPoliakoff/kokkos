@@ -69,38 +69,20 @@ using SpaceHandle = Kokkos_Profiling_SpaceHandle;
 namespace Tuning {
 
 using ValueSet = Kokkos_Tuning_ValueSet;
-
 using ValueRange = Kokkos_Tuning_ValueRange;
-
 using StatisticalCategory = Kokkos_Tuning_VariableInfo_StatisticalCategory;
-
 using ValueType = Kokkos_Tuning_VariableInfo_ValueType;
-
 using CandidateValueType = Kokkos_Tuning_VariableInfo_CandidateValueType;
-
 using SetOrRange = Kokkos_Tuning_VariableInfo_SetOrRange;
-
 using VariableInfo = Kokkos_Tuning_VariableInfo;
 // TODO DZP: VariableInfo subclasses to automate some of this
 
 using VariableValue = Kokkos_Tuning_VariableValue;
 
 namespace impl {
-  VariableValue make_variable_value(int val) {
-    VariableValue variable_value;
-    variable_value.value.int_value = val; 
-    return variable_value;
-  }
-  VariableValue make_variable_value (double val) {
-    VariableValue variable_value;
-    variable_value.value.double_value = val; 
-    return variable_value;
-  }
-  VariableValue make_variable_value(const char* val) {
-    VariableValue variable_value;
-    variable_value.value.string_value = val; 
-    return variable_value;
-  }
+  VariableValue make_variable_value(int val);
+  VariableValue make_variable_value (double val);
+  VariableValue make_variable_value(const char* val);
 }
 
 template<typename T>
@@ -139,58 +121,6 @@ using contextEndFunction                 = Kokkos_Tuning_contextEndFunction;
 
 } // end namespace Tuning
 
-namespace Profiling {
-bool profileLibraryLoaded();
-
-void beginParallelFor(const std::string& kernelPrefix, const uint32_t devID,
-                      uint64_t* kernelID);
-void endParallelFor(const uint64_t kernelID);
-void beginParallelScan(const std::string& kernelPrefix, const uint32_t devID,
-                       uint64_t* kernelID);
-void endParallelScan(const uint64_t kernelID);
-void beginParallelReduce(const std::string& kernelPrefix, const uint32_t devID,
-                         uint64_t* kernelID);
-void endParallelReduce(const uint64_t kernelID);
-
-void pushRegion(const std::string& kName);
-void popRegion();
-
-void createProfileSection(const std::string& sectionName, uint32_t* secID);
-void startSection(const uint32_t secID);
-void stopSection(const uint32_t secID);
-void destroyProfileSection(const uint32_t secID);
-
-void markEvent(const std::string* evName);
-
-void allocateData(const SpaceHandle space, const std::string label,
-                  const void* ptr, const uint64_t size);
-void deallocateData(const SpaceHandle space, const std::string label,
-                    const void* ptr, const uint64_t size);
-
-void beginDeepCopy(const SpaceHandle dst_space, const std::string dst_label,
-                   const void* dst_ptr, const SpaceHandle src_space,
-                   const std::string src_label, const void* src_ptr,
-                   const uint64_t size);
-void endDeepCopy();
-
-void initialize();
-void finalize();
-
-}  // namespace Profiling
-namespace Tuning  {
-void declareTuningVariable(const std::string& variableName, size_t uniqID, VariableInfo info); 
-
-void declareContextVariable(const std::string& variableName, size_t uniqID, VariableInfo info); 
-
-void declareContextVariableValues(size_t contextId, size_t count, size_t* uniqIds, VariableValue* values);
-
-void endContext(size_t contextId);
-
-void requestTuningVariableValues(size_t count, size_t* uniqIds, VariableValue* values);
-
-bool haveTuningTool();
-
-} // end namespace Tuning
 }  // namespace Kokkos
 
 #else

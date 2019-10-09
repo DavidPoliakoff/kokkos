@@ -281,6 +281,24 @@ bool haveTuningTool(){
   return (nullptr!=tuningVariableValueCallee);        
 } 
 
+namespace impl {
+VariableValue make_variable_value(int val) {
+  VariableValue variable_value;
+  variable_value.value.int_value = val; 
+  return variable_value;
+}
+VariableValue make_variable_value (double val) {
+  VariableValue variable_value;
+  variable_value.value.double_value = val; 
+  return variable_value;
+}
+VariableValue make_variable_value(const char* val) {
+  VariableValue variable_value;
+  variable_value.value.string_value = val; 
+  return variable_value;
+}
+}
+
 } // end namespace Tuning
 
 namespace Profiling {
