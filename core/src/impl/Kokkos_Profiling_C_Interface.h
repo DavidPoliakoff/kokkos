@@ -55,11 +55,6 @@ struct Kokkos_Profiling_SpaceHandle {
   const char* name;
 };
 
-Kokkos_Profiling_SpaceHandle kokkos_profiling_make_space_handle(const char* space_name){
- Kokkos_Profiling_SpaceHandle handle;
- handle.name = space_name;
- return handle;
-}
 
 struct Kokkos_Tuning_ValueSet {
   int size;
