@@ -83,6 +83,15 @@ void initialize_internal(const InitArguments& args) {
   if (args.disable_warnings) {
     g_show_warnings = false;
   }
+#if defined(KOKKOS_ENABLE_PROFILING)
+  Kokkos::Profiling::initialize();
+#else
+  if (getenv("KOKKOS_PROFILE_LIBRARY") != nullptr) {
+    std::cerr << "Kokkos::initialize() warning: Requested Kokkos Profiling, "
+                 "but Kokkos was built without Profiling support"
+              << std::endl;
+  }
+#endif
 
   // Protect declarations, to prevent "unused variable" warnings.
 #if defined(KOKKOS_ENABLE_OPENMP) || defined(KOKKOS_ENABLE_THREADS) || \
@@ -252,15 +261,6 @@ void initialize_internal(const InitArguments& args) {
   }
 #endif
 
-#if defined(KOKKOS_ENABLE_PROFILING)
-  Kokkos::Profiling::initialize();
-#else
-  if (getenv("KOKKOS_PROFILE_LIBRARY") != nullptr) {
-    std::cerr << "Kokkos::initialize() warning: Requested Kokkos Profiling, "
-                 "but Kokkos was built without Profiling support"
-              << std::endl;
-  }
-#endif
   g_is_initialized = true;
 }
 

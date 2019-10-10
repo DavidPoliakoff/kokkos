@@ -47,7 +47,9 @@
 #define KOKKOS_ENABLE_TUNING // TODO DZP: make this a build system option
 #include <impl/Kokkos_Profiling.hpp>
 #include <cstring>
-
+#include <unordered_map>
+#include <unordered_set>
+#include <algorithm>
 namespace Kokkos {
 namespace Profiling {
 
@@ -253,6 +255,11 @@ SpaceHandle make_space_handle(const char* space_name){
 
 
 namespace Tuning {
+
+static std::unordered_map<size_t, std::unordered_set<size_t>> features_per_context; 
+static std::unordered_set<size_t> active_features;
+static std::unordered_map<size_t,VariableValue> feature_values;
+
 void declareTuningVariable(const std::string& variableName, size_t uniqID, VariableInfo info){
   if(nullptr != tuningVariableDeclarationCallee){
     (*tuningVariableDeclarationCallee)(variableName.c_str(), uniqID, info);
@@ -266,21 +273,37 @@ void declareContextVariable(const std::string& variableName, size_t uniqID, Vari
 }
 
 void declareContextVariableValues(size_t contextId, size_t count, size_t* uniqIds, VariableValue* values){
-  if(nullptr != contextVariableValueCallee){
-    (*contextVariableValueCallee)(contextId, count, uniqIds, values);
+  if(features_per_context.find(contextId) == features_per_context.end()){
+     features_per_context[contextId] =  std::unordered_set<size_t>(uniqIds,uniqIds+count);
   }
+  else{
+     features_per_context[contextId].insert(uniqIds, uniqIds+count);
+  }
+  active_features.insert(uniqIds,uniqIds+count);
+  for(int x = 0 ; x< count; ++x){
+    feature_values[uniqIds[x]] = values[x];
+  }  
 }
 
 void requestTuningVariableValues(size_t count, size_t* uniqIds, VariableValue* values){
+  std::vector<size_t>  context_ids;
+  std::vector<VariableValue> context_values;
+  for(auto id: active_features){
+    context_ids.push_back(id);
+    context_values.push_back(feature_values[id]);
+  }
   if(nullptr != tuningVariableValueCallee){
-    (*tuningVariableValueCallee)(count, uniqIds, values);
+    (*tuningVariableValueCallee)(context_ids.size(), context_ids.data(), context_values.data(), count, uniqIds, values);
   } 
 }
 
 void endContext(size_t contextId){
-  if(nullptr!=contextEndCallee){
-    (*contextEndCallee)(contextId);
+  for(auto id : features_per_context[contextId]){
+    active_features.erase(id);
   }
+  if(nullptr != Kokkos::Tuning::contextEndCallee){
+    (*contextEndCallee)(contextId);
+  } 
 }
 
 bool haveTuningTool(){
