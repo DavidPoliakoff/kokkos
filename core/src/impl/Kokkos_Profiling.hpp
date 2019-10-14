@@ -45,6 +45,8 @@
 #define KOKKOS_IMPL_KOKKOS_PROFILING_HPP
 
 #include <impl/Kokkos_Profiling_Interface.hpp>
+#include <Kokkos_Macros.hpp>
+#include <Kokkos_Core_fwd.hpp>
 #include <dlfcn.h>
 
 namespace Kokkos {

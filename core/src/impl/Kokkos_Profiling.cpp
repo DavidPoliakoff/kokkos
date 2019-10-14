@@ -443,9 +443,14 @@ void initialize() {
       kernel_type.category = Kokkos::Tuning::StatisticalCategory::categorical;
       kernel_type.valueQuantity = Kokkos::Tuning::CandidateValueType::set;
       
-      const char* names[] = {"parallel_reduce","parallel_for","parallel_scan","deep_copy"};
+      Kokkos::Tuning::VariableValue values[] = {
+              Kokkos::Tuning::make_variable_value("parallel_for"),
+              Kokkos::Tuning::make_variable_value("parallel_reduce"),
+              Kokkos::Tuning::make_variable_value("parallel_scan"),
+              Kokkos::Tuning::make_variable_value("deep_copy"),
+      };
 
-      kernel_type.value.set = Kokkos::Tuning::ValueSet {4,(reinterpret_cast<void*>(names))};
+      kernel_type.value.set = Kokkos::Tuning::ValueSet {4,values};
 
       Kokkos::Tuning::declareContextVariable("kokkos.kernel_type", 3, kernel_type);
 

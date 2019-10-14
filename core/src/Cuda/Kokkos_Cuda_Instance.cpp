@@ -437,17 +437,33 @@ void CudaInternal::initialize(int cuda_device_id, cudaStream_t stream) {
     block_size.type = Kokkos::Tuning::ValueType::integer;
     block_size.category = Kokkos::Tuning::StatisticalCategory::ratio;
     block_size.valueQuantity = Kokkos::Tuning::CandidateValueType::set; 
-    int block_sizes[] = { 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096 }; 
-    block_size.value.set = Kokkos::Tuning::ValueSet { 13, (void*)block_sizes };
+    Kokkos::Tuning::VariableValue block_sizes[] = {
+      Kokkos::Tuning::make_variable_value(1),
+      Kokkos::Tuning::make_variable_value(2),
+      Kokkos::Tuning::make_variable_value(4),
+      Kokkos::Tuning::make_variable_value(8),
+      Kokkos::Tuning::make_variable_value(16),
+      Kokkos::Tuning::make_variable_value(32),
+      Kokkos::Tuning::make_variable_value(64),
+      Kokkos::Tuning::make_variable_value(128),
+      Kokkos::Tuning::make_variable_value(256),
+      Kokkos::Tuning::make_variable_value(512),
+      Kokkos::Tuning::make_variable_value(1024),
+      Kokkos::Tuning::make_variable_value(2048),
+      Kokkos::Tuning::make_variable_value(4096)
+    };
+    block_size.value.set = Kokkos::Tuning::ValueSet { 13, block_sizes };
 
     Kokkos::Tuning::VariableInfo store_functor_in_constant_memory;
     store_functor_in_constant_memory.type = Kokkos::Tuning::ValueType::boolean;
     store_functor_in_constant_memory.category = Kokkos::Tuning::StatisticalCategory::categorical;
     store_functor_in_constant_memory.valueQuantity = Kokkos::Tuning::CandidateValueType::set;
 
-    bool boolean_values[] = { true, false };
-
-    store_functor_in_constant_memory.value.set = Kokkos::Tuning::ValueSet { 2, (void*)boolean_values };
+    Kokkos::Tuning::VariableValue true_false[] = {
+      Kokkos::Tuning::make_variable_value(true),
+      Kokkos::Tuning::make_variable_value(false)
+    };
+    store_functor_in_constant_memory.value.set = Kokkos::Tuning::ValueSet { 2, true_false };
     Kokkos::Tuning::declareTuningVariable("kokkos.cuda.block_size", 0 /** TODO DZP: "getNewTuningVariableUniqueId */, block_size);
     Kokkos::Tuning::declareTuningVariable("kokkos.cuda.store_functor_in_constant_memory", 1, store_functor_in_constant_memory);
 #endif
