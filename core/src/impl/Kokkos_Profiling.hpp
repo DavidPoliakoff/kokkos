@@ -97,7 +97,7 @@ void declareContextVariableValues(size_t contextId, size_t count, size_t* uniqId
 
 void endContext(size_t contextId);
 
-void requestTuningVariableValues(size_t count, size_t* uniqIds, VariableValue* values);
+void requestTuningVariableValues(size_t contextId, size_t count, size_t* uniqIds, VariableValue* values);
 
 bool haveTuningTool();
 

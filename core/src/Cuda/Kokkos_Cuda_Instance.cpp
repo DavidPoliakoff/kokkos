@@ -448,7 +448,6 @@ void CudaInternal::initialize(int cuda_device_id, cudaStream_t stream) {
     bool boolean_values[] = { true, false };
 
     store_functor_in_constant_memory.value.set = Kokkos::Tuning::ValueSet { 2, (void*)boolean_values };
-     
     Kokkos::Tuning::declareTuningVariable("kokkos.cuda.block_size", 0 /** TODO DZP: "getNewTuningVariableUniqueId */, block_size);
     Kokkos::Tuning::declareTuningVariable("kokkos.cuda.store_functor_in_constant_memory", 1, store_functor_in_constant_memory);
 #endif

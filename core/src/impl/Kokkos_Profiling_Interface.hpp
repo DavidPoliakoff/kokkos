@@ -44,10 +44,8 @@
 #ifndef KOKKOSP_INTERFACE_HPP
 #define KOKKOSP_INTERFACE_HPP
 
-#include <Kokkos_Macros.hpp>
 #include <cinttypes>
 #include <cstddef>
-#include <Kokkos_Core_fwd.hpp>
 #include <string>
 
 #include <iostream>

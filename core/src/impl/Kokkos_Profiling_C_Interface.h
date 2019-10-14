@@ -63,15 +63,25 @@ struct Kokkos_Profiling_SpaceHandle {
   const char* name;
 };
 
+union Kokkos_Tuning_VariableValue_ValueUnion {
+  int int_value;
+  double double_value;
+  const char* string_value;
+};
+
+struct Kokkos_Tuning_VariableValue {
+ union Kokkos_Tuning_VariableValue_ValueUnion value;
+};
+
 
 struct Kokkos_Tuning_ValueSet {
   int size;
-  void* values;
+  struct Kokkos_Tuning_VariableValue* values;
 };
 
 struct Kokkos_Tuning_ValueRange {
-  void* lower;
-  void* upper;
+  Kokkos_Tuning_VariableValue lower;
+  Kokkos_Tuning_VariableValue upper;
   bool openLower;
   bool openUpper;
 };
@@ -109,15 +119,6 @@ struct Kokkos_Tuning_VariableInfo {
   union Kokkos_Tuning_VariableInfo_SetOrRange value;
 };
 
-union Kokkos_Tuning_VariableValue_ValueUnion {
-  int int_value;
-  double double_value;
-  const char* string_value;
-};
-
-struct Kokkos_Tuning_VariableValue {
- union Kokkos_Tuning_VariableValue_ValueUnion value;
-};
 
 typedef void (*Kokkos_Profiling_initFunction)(const int, const uint64_t, const uint32_t,
                             Kokkos_Profiling_KokkosPDeviceInfo*);
@@ -147,7 +148,7 @@ typedef void (*Kokkos_Profiling_endDeepCopyFunction)();
 
 typedef void (*Kokkos_Tuning_tuningVariableDeclarationFunction)(const char*, const size_t, Kokkos_Tuning_VariableInfo info); 
 typedef void (*Kokkos_Tuning_contextVariableDeclarationFunction)(const char*, const size_t, Kokkos_Tuning_VariableInfo info); 
-typedef void (*Kokkos_Tuning_tuningVariableValueFunction)(const size_t, const size_t*, const Kokkos_Tuning_VariableValue*, const size_t count, const size_t* uniqIds, Kokkos_Tuning_VariableValue*);
+typedef void (*Kokkos_Tuning_tuningVariableValueFunction)(const size_t, const size_t, const size_t*, const Kokkos_Tuning_VariableValue*, const size_t count, const size_t* uniqIds, Kokkos_Tuning_VariableValue*);
 typedef void (*Kokkos_Tuning_contextVariableValueFunction)(const size_t contextId, const size_t count, const size_t* uniqIds, Kokkos_Tuning_VariableValue* values);
 typedef void (*Kokkos_Tuning_contextEndFunction)(const size_t);
 

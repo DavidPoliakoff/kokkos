@@ -102,7 +102,7 @@ void beginParallelFor(const std::string& kernelPrefix, const uint32_t devID,
 #ifdef KOKKOS_ENABLE_TUNING
     size_t uniqIds[] = {2,3};
     Kokkos::Tuning::VariableValue contextValues[] = { Kokkos::Tuning::make_variable_value(kernelPrefix.c_str()), Kokkos::Tuning::make_variable_value("parallel_for") };
-    Kokkos::Tuning::declareContextVariableValues(0 /** TODO DZP: make context id's work */, 2, uniqIds , contextValues);
+    Kokkos::Tuning::declareContextVariableValues(77 /** TODO DZP: make context id's work */, 2, uniqIds , contextValues);
 #endif
   }
 }
@@ -112,7 +112,7 @@ void endParallelFor(const uint64_t kernelID) {
     Kokkos::fence();
     (*endForCallee)(kernelID);
 #ifdef KOKKOS_ENABLE_TUNING
-    Kokkos::Tuning::endContext(0);
+    Kokkos::Tuning::endContext(77);
 #endif
   }
 }
@@ -125,7 +125,7 @@ void beginParallelScan(const std::string& kernelPrefix, const uint32_t devID,
 #ifdef KOKKOS_ENABLE_TUNING
     size_t uniqIds[] = {2,3};
     Kokkos::Tuning::VariableValue contextValues[] = { Kokkos::Tuning::make_variable_value(kernelPrefix.c_str()), Kokkos::Tuning::make_variable_value("parallel_scan") };
-    Kokkos::Tuning::declareContextVariableValues(0 /** TODO DZP: make context id's work */, 2, uniqIds , contextValues);
+    Kokkos::Tuning::declareContextVariableValues(77 /** TODO DZP: make context id's work */, 2, uniqIds , contextValues);
 #endif
   }
 }
@@ -135,7 +135,7 @@ void endParallelScan(const uint64_t kernelID) {
     Kokkos::fence();
     (*endScanCallee)(kernelID);
 #ifdef KOKKOS_ENABLE_TUNING
-    Kokkos::Tuning::endContext(0);
+    Kokkos::Tuning::endContext(77);
 #endif
   }
 }
@@ -148,7 +148,7 @@ void beginParallelReduce(const std::string& kernelPrefix, const uint32_t devID,
 #ifdef KOKKOS_ENABLE_TUNING
     size_t uniqIds[] = {2,3};
     Kokkos::Tuning::VariableValue contextValues[] = { Kokkos::Tuning::make_variable_value(kernelPrefix.c_str()), Kokkos::Tuning::make_variable_value("parallel_reduce") };
-    Kokkos::Tuning::declareContextVariableValues(0 /** TODO DZP: make context id's work */, 2, uniqIds , contextValues);
+    Kokkos::Tuning::declareContextVariableValues(77 /** TODO DZP: make context id's work */, 2, uniqIds , contextValues);
 #endif
   }
 }
@@ -159,7 +159,7 @@ void endParallelReduce(const uint64_t kernelID) {
     (*endReduceCallee)(kernelID);
   }
 #ifdef KOKKOS_ENABLE_TUNING
-    Kokkos::Tuning::endContext(0);
+    Kokkos::Tuning::endContext(77);
 #endif
 }
 
@@ -201,7 +201,7 @@ void beginDeepCopy(const SpaceHandle dst_space, const std::string dst_label,
 #ifdef KOKKOS_ENABLE_TUNING
     size_t uniqIds[] = {2,3};
     Kokkos::Tuning::VariableValue contextValues[] = { Kokkos::Tuning::make_variable_value("deep_copy_kernel"), Kokkos::Tuning::make_variable_value("deep_copy") }; // TODO DZP: should deep copy have context variables for source and destination features?
-    Kokkos::Tuning::declareContextVariableValues(0 /** TODO DZP: make context id's work */, 2, uniqIds , contextValues);
+    Kokkos::Tuning::declareContextVariableValues(77 /** TODO DZP: make context id's work */, 2, uniqIds , contextValues);
 #endif
   }
 }
@@ -210,7 +210,7 @@ void endDeepCopy() {
   if (nullptr != endDeepCopyCallee) {
     (*endDeepCopyCallee)();
 #ifdef KOKKOS_ENABLE_TUNING
-    Kokkos::Tuning::endContext(0);
+    Kokkos::Tuning::endContext(77);
 #endif
   }
 }
@@ -285,7 +285,7 @@ void declareContextVariableValues(size_t contextId, size_t count, size_t* uniqId
   }  
 }
 
-void requestTuningVariableValues(size_t count, size_t* uniqIds, VariableValue* values){
+void requestTuningVariableValues(size_t contextId, size_t count, size_t* uniqIds, VariableValue* values){
   std::vector<size_t>  context_ids;
   std::vector<VariableValue> context_values;
   for(auto id: active_features){
@@ -293,7 +293,7 @@ void requestTuningVariableValues(size_t count, size_t* uniqIds, VariableValue* v
     context_values.push_back(feature_values[id]);
   }
   if(nullptr != tuningVariableValueCallee){
-    (*tuningVariableValueCallee)(context_ids.size(), context_ids.data(), context_values.data(), count, uniqIds, values);
+    (*tuningVariableValueCallee)(contextId, context_ids.size(), context_ids.data(), context_values.data(), count, uniqIds, values);
   } 
 }
 
@@ -514,6 +514,8 @@ namespace Tuning {
 }  // namespace Kokkos
 
 #else
+
+// TODO DZP, handle the off case
 
 #include <impl/Kokkos_Profiling_Interface.hpp>
 #include <cstring>
