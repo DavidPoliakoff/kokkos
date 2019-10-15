@@ -71,9 +71,11 @@ static size_t getBlockSizeVariableId() {
     Kokkos::Tuning::VariableInfo block_size;
     id = Kokkos::Tuning::getNewVariableId();
 
-    block_size.type          = Kokkos::Tuning::ValueType::integer;
-    block_size.category      = Kokkos::Tuning::StatisticalCategory::ratio;
-    block_size.valueQuantity = Kokkos::Tuning::CandidateValueType::set;
+    block_size.type = Kokkos::Tuning::ValueType::kokkos_value_integer;
+    block_size.category =
+        Kokkos::Tuning::StatisticalCategory::kokkos_value_ratio;
+    block_size.valueQuantity =
+        Kokkos::Tuning::CandidateValueType::kokkos_value_set;
     Kokkos::Tuning::VariableValue block_sizes[] = {
         Kokkos::Tuning::make_variable_value(id, 1),
         Kokkos::Tuning::make_variable_value(id, 2),

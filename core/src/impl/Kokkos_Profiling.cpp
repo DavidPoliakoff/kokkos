@@ -485,9 +485,11 @@ void initialize() {
           *((Kokkos::Tuning::contextEndFunction*)&p23);
 
       Kokkos::Tuning::VariableInfo kernel_name;
-      kernel_name.type     = Kokkos::Tuning::ValueType::text;
-      kernel_name.category = Kokkos::Tuning::StatisticalCategory::categorical;
-      kernel_name.valueQuantity = Kokkos::Tuning::CandidateValueType::unbounded;
+      kernel_name.type = Kokkos::Tuning::ValueType::kokkos_value_text;
+      kernel_name.category =
+          Kokkos::Tuning::StatisticalCategory::kokkos_value_categorical;
+      kernel_name.valueQuantity =
+          Kokkos::Tuning::CandidateValueType::kokkos_value_unbounded;
       Kokkos::Tuning::kernel_name_context_variable_id =
           Kokkos::Tuning::getNewVariableId();
       Kokkos::Tuning::kernel_type_context_variable_id =
@@ -497,9 +499,11 @@ void initialize() {
           kernel_name);
 
       Kokkos::Tuning::VariableInfo kernel_type;
-      kernel_type.type     = Kokkos::Tuning::ValueType::text;
-      kernel_type.category = Kokkos::Tuning::StatisticalCategory::categorical;
-      kernel_type.valueQuantity = Kokkos::Tuning::CandidateValueType::set;
+      kernel_type.type = Kokkos::Tuning::ValueType::kokkos_value_text;
+      kernel_type.category =
+          Kokkos::Tuning::StatisticalCategory::kokkos_value_categorical;
+      kernel_type.valueQuantity =
+          Kokkos::Tuning::CandidateValueType::kokkos_value_set;
 
       Kokkos::Tuning::VariableValue values[] = {
           Kokkos::Tuning::make_variable_value(

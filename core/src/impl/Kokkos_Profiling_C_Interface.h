@@ -89,23 +89,23 @@ struct Kokkos_Tuning_ValueRange {
 };
 
 enum Kokkos_Tuning_VariableInfo_ValueType {
-    floating_point, // TODO DZP: single and double? One or the other?
-    integer,
-    text,
-    boolean
+    kokkos_value_floating_point, // TODO DZP: single and double? One or the other?
+    kokkos_value_integer,
+    kokkos_value_text,
+    kokkos_value_boolean
 };
 
 enum Kokkos_Tuning_VariableInfo_StatisticalCategory {
-  categorical, // unordered distinct objects
-  ordinal,     // ordered distinct objects
-  interval,    // ordered distinct objects for which distance matters
-  ratio        // ordered distinct objects for which distance matters, division matters, and the concept of zero exists
+  kokkos_value_categorical, // unordered distinct objects
+  kokkos_value_ordinal,     // ordered distinct objects
+  kokkos_value_interval,    // ordered distinct objects for which distance matters
+  kokkos_value_ratio        // ordered distinct objects for which distance matters, division matters, and the concept of zero exists
 };
 
 enum Kokkos_Tuning_VariableInfo_CandidateValueType {
-  set,        // I am one of [2,3,4,5]
-  range,      // I am somewhere in [2,12)
-  unbounded   // I am [text/int/float], but we don't know at declaration time what values are appropriate. Only valid for Context Variables
+  kokkos_value_set,        // I am one of [2,3,4,5]
+  kokkos_value_range,      // I am somewhere in [2,12)
+  kokkos_value_unbounded   // I am [text/int/float], but we don't know at declaration time what values are appropriate. Only valid for Context Variables
   // TODO DZP: not handled: 1 + 3x, sets of ranges, range with hole (zero). Do these matter?
 };
 
