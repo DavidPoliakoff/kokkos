@@ -90,7 +90,6 @@ static size_t kernel_name_context_variable_id;
 static size_t kernel_type_context_variable_id;
 static tuningVariableDeclarationFunction tuningVariableDeclarationCallee = nullptr;
 static tuningVariableValueFunction tuningVariableValueCallee = nullptr;
-static contextVariableDeclarationFunction contextVariableDeclarationCallee = nullptr;
 static contextVariableValueFunction contextVariableValueCallee = nullptr;
 static contextEndFunction contextEndCallee = nullptr;
 
