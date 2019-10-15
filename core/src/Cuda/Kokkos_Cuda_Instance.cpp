@@ -430,24 +430,6 @@ void CudaInternal::initialize(int cuda_device_id, cudaStream_t stream) {
     }
     //----------------------------------
     // Declare Tuning Variables
-#ifdef KOKKOS_ENABLE_TUNING
-
-    Kokkos::Tuning::VariableInfo store_functor_in_constant_memory;
-    store_functor_in_constant_memory.type = Kokkos::Tuning::ValueType::boolean;
-    store_functor_in_constant_memory.category =
-        Kokkos::Tuning::StatisticalCategory::categorical;
-    store_functor_in_constant_memory.valueQuantity =
-        Kokkos::Tuning::CandidateValueType::set;
-
-    Kokkos::Tuning::VariableValue true_false[] = {
-        Kokkos::Tuning::make_variable_value(true),
-        Kokkos::Tuning::make_variable_value(false)};
-    store_functor_in_constant_memory.value.set =
-        Kokkos::Tuning::ValueSet{2, true_false};
-    Kokkos::Tuning::declareTuningVariable(
-        "kokkos.cuda.store_functor_in_constant_memory", 1,
-        store_functor_in_constant_memory);
-#endif
   } else {
     std::ostringstream msg;
     msg << "Kokkos::Cuda::initialize(" << cuda_device_id << ") FAILED";
