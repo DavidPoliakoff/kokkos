@@ -103,6 +103,11 @@ void requestTuningVariableValues(size_t contextId, size_t count, size_t* uniqIds
 
 bool haveTuningTool();
 
+size_t getNewContextId();
+size_t getCurrentContextId();
+
+size_t getNewVariableId();
+
 
 } // namespace Tuning
 
