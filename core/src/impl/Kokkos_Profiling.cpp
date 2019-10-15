@@ -42,6 +42,7 @@
  */
 
 #include <Kokkos_Macros.hpp>
+#include <dlfcn.h>
 
 #if defined(KOKKOS_ENABLE_PROFILING)
 #define KOKKOS_ENABLE_TUNING // TODO DZP: make this a build system option
@@ -90,7 +91,7 @@ static size_t kernel_name_context_variable_id;
 static size_t kernel_type_context_variable_id;
 static tuningVariableDeclarationFunction tuningVariableDeclarationCallee = nullptr;
 static tuningVariableValueFunction tuningVariableValueCallee = nullptr;
-static contextVariableValueFunction contextVariableValueCallee = nullptr;
+static contextVariableDeclarationFunction contextVariableDeclarationCallee = nullptr;
 static contextEndFunction contextEndCallee = nullptr;
 
 } // end namespace Tuning
@@ -431,12 +432,10 @@ void initialize() {
       Kokkos::Tuning::tuningVariableDeclarationCallee = *((Kokkos::Tuning::tuningVariableDeclarationFunction*)&p20);
       auto p21           = dlsym(firstProfileLibrary, "kokkosp_declare_context_variable");
       Kokkos::Tuning::contextVariableDeclarationCallee = *((Kokkos::Tuning::contextVariableDeclarationFunction*)&p21);
-      auto p22           = dlsym(firstProfileLibrary, "kokkosp_declare_context_variable_values");
-      Kokkos::Tuning::contextVariableValueCallee = *((Kokkos::Tuning::contextVariableValueFunction*)&p22);
-      auto p23           = dlsym(firstProfileLibrary, "kokkosp_request_tuning_variable_values");
-      Kokkos::Tuning::tuningVariableValueCallee = *((Kokkos::Tuning::tuningVariableValueFunction*)&p23);
-      auto p24           = dlsym(firstProfileLibrary, "kokkosp_end_context");
-      Kokkos::Tuning::contextEndCallee = *((Kokkos::Tuning::contextEndFunction*)&p24);
+      auto p22           = dlsym(firstProfileLibrary, "kokkosp_request_tuning_variable_values");
+      Kokkos::Tuning::tuningVariableValueCallee = *((Kokkos::Tuning::tuningVariableValueFunction*)&p22);
+      auto p23           = dlsym(firstProfileLibrary, "kokkosp_end_context");
+      Kokkos::Tuning::contextEndCallee = *((Kokkos::Tuning::contextEndFunction*)&p23);
       
       Kokkos::Tuning::VariableInfo kernel_name;
       kernel_name.type = Kokkos::Tuning::ValueType::text;
@@ -513,7 +512,6 @@ void finalize() {
     // TODO DZP: move to its own section
     Kokkos::Tuning::tuningVariableDeclarationCallee = nullptr;
     Kokkos::Tuning::contextVariableDeclarationCallee = nullptr;
-    Kokkos::Tuning::contextVariableValueCallee = nullptr;
     Kokkos::Tuning::tuningVariableValueCallee = nullptr;
     Kokkos::Tuning::contextEndCallee = nullptr;
   }
