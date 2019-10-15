@@ -353,6 +353,12 @@ void endContext(size_t contextId) {
 
 bool haveTuningTool() { return (nullptr != tuningVariableValueCallee); }
 
+VariableValue make_variable_value(size_t id, bool val) {
+  VariableValue variable_value;
+  variable_value.id               = id;
+  variable_value.value.bool_value = val;
+  return variable_value;
+}
 VariableValue make_variable_value(size_t id, int val) {
   VariableValue variable_value;
   variable_value.id              = id;

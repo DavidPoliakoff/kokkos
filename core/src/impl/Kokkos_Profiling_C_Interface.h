@@ -64,6 +64,7 @@ struct Kokkos_Profiling_SpaceHandle {
 };
 
 union Kokkos_Tuning_VariableValue_ValueUnion {
+  bool bool_value;
   int int_value;
   double double_value;
   const char* string_value;
