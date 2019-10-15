@@ -87,18 +87,22 @@ void initialize();
 void finalize();
 
 Kokkos_Profiling_SpaceHandle make_space_handle(const char* space_name);
-} // namespace Profiling
+}  // namespace Profiling
 
 namespace Tuning {
-void declareTuningVariable(const std::string& variableName, size_t uniqID, VariableInfo info); 
+void declareTuningVariable(const std::string& variableName, size_t uniqID,
+                           VariableInfo info);
 
-void declareContextVariable(const std::string& variableName, size_t uniqID, VariableInfo info); 
+void declareContextVariable(const std::string& variableName, size_t uniqID,
+                            VariableInfo info);
 
-void declareContextVariableValues(size_t contextId, size_t count, size_t* uniqIds, VariableValue* values);
+void declareContextVariableValues(size_t contextId, size_t count,
+                                  size_t* uniqIds, VariableValue* values);
 
 void endContext(size_t contextId);
 
-void requestTuningVariableValues(size_t contextId, size_t count, size_t* uniqIds, VariableValue* values);
+void requestTuningVariableValues(size_t contextId, size_t count,
+                                 size_t* uniqIds, VariableValue* values);
 
 bool haveTuningTool();
 
@@ -107,9 +111,8 @@ size_t getCurrentContextId();
 
 size_t getNewVariableId();
 
+}  // namespace Tuning
 
-} // namespace Tuning
-
-} // namespace Kokkos
+}  // namespace Kokkos
 
 #endif

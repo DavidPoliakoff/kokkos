@@ -55,72 +55,78 @@
 #include <impl/Kokkos_Profiling_DeviceInfo.hpp>
 #include <impl/Kokkos_Profiling_C_Interface.h>
 #include <impl/Kokkos_Profiling_C_Interface.h>
-#define KOKKOS_ENABLE_TUNING // TODO DZP: this needs to be a proper build system option
+#define KOKKOS_ENABLE_TUNING  // TODO DZP: this needs to be a proper build
+                              // system option
 namespace Kokkos {
 namespace Profiling {
 
 using SpaceHandle = Kokkos_Profiling_SpaceHandle;
 
-} // end namespace Profiling
+}  // end namespace Profiling
 
 namespace Tuning {
 
-using ValueSet = Kokkos_Tuning_ValueSet;
-using ValueRange = Kokkos_Tuning_ValueRange;
+using ValueSet            = Kokkos_Tuning_ValueSet;
+using ValueRange          = Kokkos_Tuning_ValueRange;
 using StatisticalCategory = Kokkos_Tuning_VariableInfo_StatisticalCategory;
-using ValueType = Kokkos_Tuning_VariableInfo_ValueType;
-using CandidateValueType = Kokkos_Tuning_VariableInfo_CandidateValueType;
-using SetOrRange = Kokkos_Tuning_VariableInfo_SetOrRange;
-using VariableInfo = Kokkos_Tuning_VariableInfo;
+using ValueType           = Kokkos_Tuning_VariableInfo_ValueType;
+using CandidateValueType  = Kokkos_Tuning_VariableInfo_CandidateValueType;
+using SetOrRange          = Kokkos_Tuning_VariableInfo_SetOrRange;
+using VariableInfo        = Kokkos_Tuning_VariableInfo;
 // TODO DZP: VariableInfo subclasses to automate some of this
 
 using VariableValue = Kokkos_Tuning_VariableValue;
 
 namespace impl {
-  VariableValue make_variable_value(int val);
-  VariableValue make_variable_value (double val);
-  VariableValue make_variable_value(const char* val);
+VariableValue make_variable_value(int val);
+VariableValue make_variable_value(double val);
+VariableValue make_variable_value(const char* val);
+}  // namespace impl
+
+template <typename T>
+VariableValue make_variable_value(T&& in) {
+  return impl::make_variable_value(std::forward<T>(in));
 }
 
-template<typename T>
-VariableValue make_variable_value(T&& in){
-  return impl::make_variable_value(std::forward<T>(in));        
-}
-
-} // end namespace Tuning
+}  // end namespace Tuning
 
 namespace Profiling {
 
-using initFunction = Kokkos_Profiling_initFunction;
-using finalizeFunction = Kokkos_Profiling_finalizeFunction;
-using beginFunction = Kokkos_Profiling_beginFunction;
-using endFunction = Kokkos_Profiling_endFunction;
-using pushFunction = Kokkos_Profiling_pushFunction;
-using popFunction = Kokkos_Profiling_popFunction;
-using allocateDataFunction = Kokkos_Profiling_allocateDataFunction;
+using initFunction           = Kokkos_Profiling_initFunction;
+using finalizeFunction       = Kokkos_Profiling_finalizeFunction;
+using beginFunction          = Kokkos_Profiling_beginFunction;
+using endFunction            = Kokkos_Profiling_endFunction;
+using pushFunction           = Kokkos_Profiling_pushFunction;
+using popFunction            = Kokkos_Profiling_popFunction;
+using allocateDataFunction   = Kokkos_Profiling_allocateDataFunction;
 using deallocateDataFunction = Kokkos_Profiling_deallocateDataFunction;
-using createProfileSectionFunction = Kokkos_Profiling_createProfileSectionFunction;
-using startProfileSectionFunction = Kokkos_Profiling_startProfileSectionFunction;
+using createProfileSectionFunction =
+    Kokkos_Profiling_createProfileSectionFunction;
+using startProfileSectionFunction =
+    Kokkos_Profiling_startProfileSectionFunction;
 using stopProfileSectionFunction = Kokkos_Profiling_stopProfileSectionFunction;
-using destroyProfileSectionFunction =  Kokkos_Profiling_destroyProfileSectionFunction;
-using profileEventFunction =  Kokkos_Profiling_profileEventFunction;
+using destroyProfileSectionFunction =
+    Kokkos_Profiling_destroyProfileSectionFunction;
+using profileEventFunction  = Kokkos_Profiling_profileEventFunction;
 using beginDeepCopyFunction = Kokkos_Profiling_beginDeepCopyFunction;
-using endDeepCopyFunction = Kokkos_Profiling_endDeepCopyFunction;
+using endDeepCopyFunction   = Kokkos_Profiling_endDeepCopyFunction;
 
-} //end namespace Profiling
+}  // end namespace Profiling
 
 namespace Tuning {
-using tuningVariableDeclarationFunction  = Kokkos_Tuning_tuningVariableDeclarationFunction; 
-using contextVariableDeclarationFunction = Kokkos_Tuning_contextVariableDeclarationFunction;  
-using tuningVariableValueFunction        = Kokkos_Tuning_tuningVariableValueFunction;
-using contextVariableValueFunction       = Kokkos_Tuning_contextVariableValueFunction;
-using contextEndFunction                 = Kokkos_Tuning_contextEndFunction;
+using tuningVariableDeclarationFunction =
+    Kokkos_Tuning_tuningVariableDeclarationFunction;
+using contextVariableDeclarationFunction =
+    Kokkos_Tuning_contextVariableDeclarationFunction;
+using tuningVariableValueFunction  = Kokkos_Tuning_tuningVariableValueFunction;
+using contextVariableValueFunction = Kokkos_Tuning_contextVariableValueFunction;
+using contextEndFunction           = Kokkos_Tuning_contextEndFunction;
 
-} // end namespace Tuning
+}  // end namespace Tuning
 
 }  // namespace Kokkos
 
-#if 0 //TODO DZP: reimplement or set on fire
+#if 0  // TODO DZP: reimplement or set on fire
 namespace Kokkos {
 namespace Profiling {
 

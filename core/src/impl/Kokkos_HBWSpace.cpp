@@ -183,7 +183,8 @@ SharedAllocationRecord<Kokkos::Experimental::HBWSpace,
 #if defined(KOKKOS_ENABLE_PROFILING)
   if (Kokkos::Profiling::profileLibraryLoaded()) {
     Kokkos::Profiling::deallocateData(
-        Kokkos::Profiling::make_space_handle(Kokkos::Experimental::HBWSpace::name()),
+        Kokkos::Profiling::make_space_handle(
+            Kokkos::Experimental::HBWSpace::name()),
         RecordBase::m_alloc_ptr->m_label, data(), size());
   }
 #endif
@@ -211,8 +212,8 @@ SharedAllocationRecord<Kokkos::Experimental::HBWSpace, void>::
 #if defined(KOKKOS_ENABLE_PROFILING)
   if (Kokkos::Profiling::profileLibraryLoaded()) {
     Kokkos::Profiling::allocateData(
-        Kokkos::Profiling::make_space_handle(arg_space.name()), arg_label, data(),
-        arg_alloc_size);
+        Kokkos::Profiling::make_space_handle(arg_space.name()), arg_label,
+        data(), arg_alloc_size);
   }
 #endif
 

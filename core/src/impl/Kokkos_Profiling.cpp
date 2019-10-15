@@ -45,7 +45,7 @@
 #include <dlfcn.h>
 
 #if defined(KOKKOS_ENABLE_PROFILING)
-#define KOKKOS_ENABLE_TUNING // TODO DZP: make this a build system option
+#define KOKKOS_ENABLE_TUNING  // TODO DZP: make this a build system option
 #include <impl/Kokkos_Profiling.hpp>
 #include <cstring>
 #include <unordered_map>
@@ -79,7 +79,7 @@ static stopProfileSectionFunction stopSectionCallee       = nullptr;
 static destroyProfileSectionFunction destroySectionCallee = nullptr;
 
 static profileEventFunction profileEventCallee = nullptr;
-} // end namespace Profiling
+}  // end namespace Profiling
 
 namespace Tuning {
 size_t getNewContextId();
@@ -89,12 +89,14 @@ size_t getNewVariableId();
 
 static size_t kernel_name_context_variable_id;
 static size_t kernel_type_context_variable_id;
-static tuningVariableDeclarationFunction tuningVariableDeclarationCallee = nullptr;
+static tuningVariableDeclarationFunction tuningVariableDeclarationCallee =
+    nullptr;
 static tuningVariableValueFunction tuningVariableValueCallee = nullptr;
-static contextVariableDeclarationFunction contextVariableDeclarationCallee = nullptr;
+static contextVariableDeclarationFunction contextVariableDeclarationCallee =
+    nullptr;
 static contextEndFunction contextEndCallee = nullptr;
 
-} // end namespace Tuning
+}  // end namespace Tuning
 
 namespace Profiling {
 
@@ -106,9 +108,13 @@ void beginParallelFor(const std::string& kernelPrefix, const uint32_t devID,
     Kokkos::fence();
     (*beginForCallee)(kernelPrefix.c_str(), devID, kernelID);
 #ifdef KOKKOS_ENABLE_TUNING
-    size_t uniqIds[] = {Kokkos::Tuning::kernel_name_context_variable_id, Kokkos::Tuning::kernel_type_context_variable_id};
-    Kokkos::Tuning::VariableValue contextValues[] = { Kokkos::Tuning::make_variable_value(kernelPrefix.c_str()), Kokkos::Tuning::make_variable_value("parallel_for") };
-    Kokkos::Tuning::declareContextVariableValues(Tuning::getNewContextId(), 2, uniqIds , contextValues);
+    size_t uniqIds[] = {Kokkos::Tuning::kernel_name_context_variable_id,
+                        Kokkos::Tuning::kernel_type_context_variable_id};
+    Kokkos::Tuning::VariableValue contextValues[] = {
+        Kokkos::Tuning::make_variable_value(kernelPrefix.c_str()),
+        Kokkos::Tuning::make_variable_value("parallel_for")};
+    Kokkos::Tuning::declareContextVariableValues(Tuning::getNewContextId(), 2,
+                                                 uniqIds, contextValues);
 #endif
   }
 }
@@ -129,9 +135,13 @@ void beginParallelScan(const std::string& kernelPrefix, const uint32_t devID,
     Kokkos::fence();
     (*beginScanCallee)(kernelPrefix.c_str(), devID, kernelID);
 #ifdef KOKKOS_ENABLE_TUNING
-    size_t uniqIds[] = {Kokkos::Tuning::kernel_name_context_variable_id, Kokkos::Tuning::kernel_type_context_variable_id};
-    Kokkos::Tuning::VariableValue contextValues[] = { Kokkos::Tuning::make_variable_value(kernelPrefix.c_str()), Kokkos::Tuning::make_variable_value("parallel_scan") };
-    Kokkos::Tuning::declareContextVariableValues(Kokkos::Tuning::getNewContextId(), 2, uniqIds , contextValues);
+    size_t uniqIds[] = {Kokkos::Tuning::kernel_name_context_variable_id,
+                        Kokkos::Tuning::kernel_type_context_variable_id};
+    Kokkos::Tuning::VariableValue contextValues[] = {
+        Kokkos::Tuning::make_variable_value(kernelPrefix.c_str()),
+        Kokkos::Tuning::make_variable_value("parallel_scan")};
+    Kokkos::Tuning::declareContextVariableValues(
+        Kokkos::Tuning::getNewContextId(), 2, uniqIds, contextValues);
 #endif
   }
 }
@@ -152,9 +162,13 @@ void beginParallelReduce(const std::string& kernelPrefix, const uint32_t devID,
     Kokkos::fence();
     (*beginReduceCallee)(kernelPrefix.c_str(), devID, kernelID);
 #ifdef KOKKOS_ENABLE_TUNING
-    size_t uniqIds[] = {Kokkos::Tuning::kernel_name_context_variable_id, Kokkos::Tuning::kernel_type_context_variable_id};
-    Kokkos::Tuning::VariableValue contextValues[] = { Kokkos::Tuning::make_variable_value(kernelPrefix.c_str()), Kokkos::Tuning::make_variable_value("parallel_reduce") };
-    Kokkos::Tuning::declareContextVariableValues(Kokkos::Tuning::getNewContextId(), 2, uniqIds , contextValues);
+    size_t uniqIds[] = {Kokkos::Tuning::kernel_name_context_variable_id,
+                        Kokkos::Tuning::kernel_type_context_variable_id};
+    Kokkos::Tuning::VariableValue contextValues[] = {
+        Kokkos::Tuning::make_variable_value(kernelPrefix.c_str()),
+        Kokkos::Tuning::make_variable_value("parallel_reduce")};
+    Kokkos::Tuning::declareContextVariableValues(
+        Kokkos::Tuning::getNewContextId(), 2, uniqIds, contextValues);
 #endif
   }
 }
@@ -165,7 +179,7 @@ void endParallelReduce(const uint64_t kernelID) {
     (*endReduceCallee)(kernelID);
   }
 #ifdef KOKKOS_ENABLE_TUNING
-    Kokkos::Tuning::endContext(Kokkos::Tuning::getCurrentContextId());
+  Kokkos::Tuning::endContext(Kokkos::Tuning::getCurrentContextId());
 #endif
 }
 
@@ -205,9 +219,15 @@ void beginDeepCopy(const SpaceHandle dst_space, const std::string dst_label,
     (*beginDeepCopyCallee)(dst_space, dst_label.c_str(), dst_ptr, src_space,
                            src_label.c_str(), src_ptr, size);
 #ifdef KOKKOS_ENABLE_TUNING
-    size_t uniqIds[] = {Kokkos::Tuning::kernel_name_context_variable_id, Kokkos::Tuning::kernel_type_context_variable_id};
-    Kokkos::Tuning::VariableValue contextValues[] = { Kokkos::Tuning::make_variable_value("deep_copy_kernel"), Kokkos::Tuning::make_variable_value("deep_copy") }; // TODO DZP: should deep copy have context variables for source and destination features?
-    Kokkos::Tuning::declareContextVariableValues(Kokkos::Tuning::getNewContextId(), 2, uniqIds , contextValues);
+    size_t uniqIds[] = {Kokkos::Tuning::kernel_name_context_variable_id,
+                        Kokkos::Tuning::kernel_type_context_variable_id};
+    Kokkos::Tuning::VariableValue contextValues[] = {
+        Kokkos::Tuning::make_variable_value("deep_copy_kernel"),
+        Kokkos::Tuning::make_variable_value(
+            "deep_copy")};  // TODO DZP: should deep copy have context variables
+                            // for source and destination features?
+    Kokkos::Tuning::declareContextVariableValues(
+        Kokkos::Tuning::getNewContextId(), 2, uniqIds, contextValues);
 #endif
   }
 }
@@ -251,92 +271,95 @@ void markEvent(const std::string& eventName) {
   }
 }
 
-SpaceHandle make_space_handle(const char* space_name){
+SpaceHandle make_space_handle(const char* space_name) {
   SpaceHandle handle;
   handle.name = space_name;
   return handle;
 }
 
-} // end namespace Profiling
-
+}  // end namespace Profiling
 
 namespace Tuning {
 
-static std::unordered_map<size_t, std::unordered_set<size_t>> features_per_context; 
+static std::unordered_map<size_t, std::unordered_set<size_t>>
+    features_per_context;
 static std::unordered_set<size_t> active_features;
-static std::unordered_map<size_t,VariableValue> feature_values;
+static std::unordered_map<size_t, VariableValue> feature_values;
 
-void declareTuningVariable(const std::string& variableName, size_t uniqID, VariableInfo info){
-  if(nullptr != tuningVariableDeclarationCallee){
+void declareTuningVariable(const std::string& variableName, size_t uniqID,
+                           VariableInfo info) {
+  if (nullptr != tuningVariableDeclarationCallee) {
     (*tuningVariableDeclarationCallee)(variableName.c_str(), uniqID, info);
-  }  
+  }
 }
 
-void declareContextVariable(const std::string& variableName, size_t uniqID, VariableInfo info){
-  if(nullptr != contextVariableDeclarationCallee){
+void declareContextVariable(const std::string& variableName, size_t uniqID,
+                            VariableInfo info) {
+  if (nullptr != contextVariableDeclarationCallee) {
     (*contextVariableDeclarationCallee)(variableName.c_str(), uniqID, info);
   }
 }
 
-void declareContextVariableValues(size_t contextId, size_t count, size_t* uniqIds, VariableValue* values){
-  if(features_per_context.find(contextId) == features_per_context.end()){
-     features_per_context[contextId] =  std::unordered_set<size_t>(uniqIds,uniqIds+count);
+void declareContextVariableValues(size_t contextId, size_t count,
+                                  size_t* uniqIds, VariableValue* values) {
+  if (features_per_context.find(contextId) == features_per_context.end()) {
+    features_per_context[contextId] =
+        std::unordered_set<size_t>(uniqIds, uniqIds + count);
+  } else {
+    features_per_context[contextId].insert(uniqIds, uniqIds + count);
   }
-  else{
-     features_per_context[contextId].insert(uniqIds, uniqIds+count);
-  }
-  active_features.insert(uniqIds,uniqIds+count);
-  for(int x = 0 ; x< count; ++x){
+  active_features.insert(uniqIds, uniqIds + count);
+  for (int x = 0; x < count; ++x) {
     feature_values[uniqIds[x]] = values[x];
-  }  
+  }
 }
 
-void requestTuningVariableValues(size_t contextId, size_t count, size_t* uniqIds, VariableValue* values){
-  std::vector<size_t>  context_ids;
+void requestTuningVariableValues(size_t contextId, size_t count,
+                                 size_t* uniqIds, VariableValue* values) {
+  std::vector<size_t> context_ids;
   std::vector<VariableValue> context_values;
-  for(auto id: active_features){
+  for (auto id : active_features) {
     context_ids.push_back(id);
     context_values.push_back(feature_values[id]);
   }
-  if(nullptr != tuningVariableValueCallee){
-    (*tuningVariableValueCallee)(contextId, context_ids.size(), context_ids.data(), context_values.data(), count, uniqIds, values);
-  } 
+  if (nullptr != tuningVariableValueCallee) {
+    (*tuningVariableValueCallee)(contextId, context_ids.size(),
+                                 context_ids.data(), context_values.data(),
+                                 count, uniqIds, values);
+  }
 }
 
-void endContext(size_t contextId){
-  for(auto id : features_per_context[contextId]){
+void endContext(size_t contextId) {
+  for (auto id : features_per_context[contextId]) {
     active_features.erase(id);
   }
-  if(nullptr != Kokkos::Tuning::contextEndCallee){
+  if (nullptr != Kokkos::Tuning::contextEndCallee) {
     (*contextEndCallee)(contextId);
-  } 
+  }
   decrementCurrentContextId();
 }
 
-bool haveTuningTool(){
-  return (nullptr!=tuningVariableValueCallee);        
-} 
+bool haveTuningTool() { return (nullptr != tuningVariableValueCallee); }
 
 namespace impl {
 VariableValue make_variable_value(int val) {
   VariableValue variable_value;
-  variable_value.value.int_value = val; 
+  variable_value.value.int_value = val;
   return variable_value;
 }
-VariableValue make_variable_value (double val) {
+VariableValue make_variable_value(double val) {
   VariableValue variable_value;
-  variable_value.value.double_value = val; 
+  variable_value.value.double_value = val;
   return variable_value;
 }
 VariableValue make_variable_value(const char* val) {
   VariableValue variable_value;
-  variable_value.value.string_value = val; 
+  variable_value.value.string_value = val;
   return variable_value;
 }
-}
+}  // namespace impl
 
-
-} // end namespace Tuning
+}  // end namespace Tuning
 
 namespace Profiling {
 
@@ -426,41 +449,51 @@ void initialize() {
 
       auto p19           = dlsym(firstProfileLibrary, "kokkosp_profile_event");
       profileEventCallee = *((profileEventFunction*)&p19);
-      
+
       // TODO DZP: move to its own section
-      auto p20           = dlsym(firstProfileLibrary, "kokkosp_declare_tuning_variable");
-      Kokkos::Tuning::tuningVariableDeclarationCallee = *((Kokkos::Tuning::tuningVariableDeclarationFunction*)&p20);
-      auto p21           = dlsym(firstProfileLibrary, "kokkosp_declare_context_variable");
-      Kokkos::Tuning::contextVariableDeclarationCallee = *((Kokkos::Tuning::contextVariableDeclarationFunction*)&p21);
-      auto p22           = dlsym(firstProfileLibrary, "kokkosp_request_tuning_variable_values");
-      Kokkos::Tuning::tuningVariableValueCallee = *((Kokkos::Tuning::tuningVariableValueFunction*)&p22);
-      auto p23           = dlsym(firstProfileLibrary, "kokkosp_end_context");
-      Kokkos::Tuning::contextEndCallee = *((Kokkos::Tuning::contextEndFunction*)&p23);
-      
+      auto p20 = dlsym(firstProfileLibrary, "kokkosp_declare_tuning_variable");
+      Kokkos::Tuning::tuningVariableDeclarationCallee =
+          *((Kokkos::Tuning::tuningVariableDeclarationFunction*)&p20);
+      auto p21 = dlsym(firstProfileLibrary, "kokkosp_declare_context_variable");
+      Kokkos::Tuning::contextVariableDeclarationCallee =
+          *((Kokkos::Tuning::contextVariableDeclarationFunction*)&p21);
+      auto p22 =
+          dlsym(firstProfileLibrary, "kokkosp_request_tuning_variable_values");
+      Kokkos::Tuning::tuningVariableValueCallee =
+          *((Kokkos::Tuning::tuningVariableValueFunction*)&p22);
+      auto p23 = dlsym(firstProfileLibrary, "kokkosp_end_context");
+      Kokkos::Tuning::contextEndCallee =
+          *((Kokkos::Tuning::contextEndFunction*)&p23);
+
       Kokkos::Tuning::VariableInfo kernel_name;
-      kernel_name.type = Kokkos::Tuning::ValueType::text;
+      kernel_name.type     = Kokkos::Tuning::ValueType::text;
       kernel_name.category = Kokkos::Tuning::StatisticalCategory::categorical;
       kernel_name.valueQuantity = Kokkos::Tuning::CandidateValueType::unbounded;
-      Kokkos::Tuning::kernel_name_context_variable_id = Kokkos::Tuning::getNewVariableId(); 
-      Kokkos::Tuning::kernel_type_context_variable_id = Kokkos::Tuning::getNewVariableId(); 
-      Kokkos::Tuning::declareContextVariable("kokkos.kernel_name", Kokkos::Tuning::kernel_name_context_variable_id, kernel_name);
+      Kokkos::Tuning::kernel_name_context_variable_id =
+          Kokkos::Tuning::getNewVariableId();
+      Kokkos::Tuning::kernel_type_context_variable_id =
+          Kokkos::Tuning::getNewVariableId();
+      Kokkos::Tuning::declareContextVariable(
+          "kokkos.kernel_name", Kokkos::Tuning::kernel_name_context_variable_id,
+          kernel_name);
 
       Kokkos::Tuning::VariableInfo kernel_type;
-      kernel_type.type = Kokkos::Tuning::ValueType::text;
+      kernel_type.type     = Kokkos::Tuning::ValueType::text;
       kernel_type.category = Kokkos::Tuning::StatisticalCategory::categorical;
       kernel_type.valueQuantity = Kokkos::Tuning::CandidateValueType::set;
-      
+
       Kokkos::Tuning::VariableValue values[] = {
-              Kokkos::Tuning::make_variable_value("parallel_for"),
-              Kokkos::Tuning::make_variable_value("parallel_reduce"),
-              Kokkos::Tuning::make_variable_value("parallel_scan"),
-              Kokkos::Tuning::make_variable_value("deep_copy"),
+          Kokkos::Tuning::make_variable_value("parallel_for"),
+          Kokkos::Tuning::make_variable_value("parallel_reduce"),
+          Kokkos::Tuning::make_variable_value("parallel_scan"),
+          Kokkos::Tuning::make_variable_value("deep_copy"),
       };
 
-      kernel_type.value.set = Kokkos::Tuning::ValueSet {4,values};
+      kernel_type.value.set = Kokkos::Tuning::ValueSet{4, values};
 
-      Kokkos::Tuning::declareContextVariable("kokkos.kernel_type", Kokkos::Tuning::kernel_type_context_variable_id, kernel_type);
-
+      Kokkos::Tuning::declareContextVariable(
+          "kokkos.kernel_type", Kokkos::Tuning::kernel_type_context_variable_id,
+          kernel_type);
     }
   }
 
@@ -510,42 +543,31 @@ void finalize() {
 
     profileEventCallee = nullptr;
     // TODO DZP: move to its own section
-    Kokkos::Tuning::tuningVariableDeclarationCallee = nullptr;
+    Kokkos::Tuning::tuningVariableDeclarationCallee  = nullptr;
     Kokkos::Tuning::contextVariableDeclarationCallee = nullptr;
-    Kokkos::Tuning::tuningVariableValueCallee = nullptr;
-    Kokkos::Tuning::contextEndCallee = nullptr;
+    Kokkos::Tuning::tuningVariableValueCallee        = nullptr;
+    Kokkos::Tuning::contextEndCallee                 = nullptr;
   }
 }
 }  // namespace Profiling
 
 namespace Tuning {
 
-static size_t& getContextCounter(){
+static size_t& getContextCounter() {
   static size_t x;
   return x;
 }
-static size_t& getVariableCounter(){
+static size_t& getVariableCounter() {
   static size_t x;
   return ++x;
 }
 
-size_t getNewContextId(){
-  return ++getContextCounter();
-}
-size_t getCurrentContextId(){
-  return getContextCounter();
-}
-void decrementCurrentContextId(){
-  --getContextCounter();
-}
-size_t getNewVariableId(){
-  return getVariableCounter();
-}
+size_t getNewContextId() { return ++getContextCounter(); }
+size_t getCurrentContextId() { return getContextCounter(); }
+void decrementCurrentContextId() { --getContextCounter(); }
+size_t getNewVariableId() { return getVariableCounter(); }
 
-
-
-} // end namespace Tuning
-
+}  // end namespace Tuning
 
 }  // namespace Kokkos
 
@@ -593,20 +615,24 @@ void finalize() {}
 }  // namespace Profiling
 
 namespace Tuning {
-void declareTuningVariable(const std::string& variableName, int uniqID, VariableInfo info){}
+void declareTuningVariable(const std::string& variableName, int uniqID,
+                           VariableInfo info) {}
 
-void declareContextVariable(const std::string& variableName, int uniqID, VariableInfo info){}
+void declareContextVariable(const std::string& variableName, int uniqID,
+                            VariableInfo info) {}
 
-void declareContextVariableValues(int contextId, int count, int* uniqIds, VariableValue* values){}
+void declareContextVariableValues(int contextId, int count, int* uniqIds,
+                                  VariableValue* values) {}
 
-void endContext(int contextId){}
+void endContext(int contextId) {}
 
-void requestTuningVariableValues(int count, int* uniqIds, VariableValue* values);
-size_t getNewContextId(){return 0;}
-size_t getCurrentContextId(){return 0;}
-size_t getNewVariableId(){return 0;}
+void requestTuningVariableValues(int count, int* uniqIds,
+                                 VariableValue* values);
+size_t getNewContextId() { return 0; }
+size_t getCurrentContextId() { return 0; }
+size_t getNewVariableId() { return 0; }
 
-} // end namespace Tuning
+}  // end namespace Tuning
 
 }  // namespace Kokkos
 

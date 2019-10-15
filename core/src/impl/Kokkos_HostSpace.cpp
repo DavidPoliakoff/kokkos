@@ -341,8 +341,8 @@ SharedAllocationRecord<Kokkos::HostSpace, void>::SharedAllocationRecord(
 #if defined(KOKKOS_ENABLE_PROFILING)
   if (Kokkos::Profiling::profileLibraryLoaded()) {
     Kokkos::Profiling::allocateData(
-        Kokkos::Profiling::make_space_handle(arg_space.name()), arg_label, data(),
-        arg_alloc_size);
+        Kokkos::Profiling::make_space_handle(arg_space.name()), arg_label,
+        data(), arg_alloc_size);
   }
 #endif
   // Fill in the Header information
