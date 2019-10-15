@@ -69,26 +69,26 @@ static size_t getBlockSizeVariableId() {
   static size_t id = 0;
   if (id == 0) {
     Kokkos::Tuning::VariableInfo block_size;
+    id                   = Kokkos::Tuning::getNewVariableId();
 
     block_size.type          = Kokkos::Tuning::ValueType::integer;
     block_size.category      = Kokkos::Tuning::StatisticalCategory::ratio;
     block_size.valueQuantity = Kokkos::Tuning::CandidateValueType::set;
     Kokkos::Tuning::VariableValue block_sizes[] = {
-        Kokkos::Tuning::make_variable_value(1),
-        Kokkos::Tuning::make_variable_value(2),
-        Kokkos::Tuning::make_variable_value(4),
-        Kokkos::Tuning::make_variable_value(8),
-        Kokkos::Tuning::make_variable_value(16),
-        Kokkos::Tuning::make_variable_value(32),
-        Kokkos::Tuning::make_variable_value(64),
-        Kokkos::Tuning::make_variable_value(128),
-        Kokkos::Tuning::make_variable_value(256),
-        Kokkos::Tuning::make_variable_value(512),
-        Kokkos::Tuning::make_variable_value(1024),
-        Kokkos::Tuning::make_variable_value(2048),
-        Kokkos::Tuning::make_variable_value(4096)};
+        Kokkos::Tuning::make_variable_value(id, 1),
+        Kokkos::Tuning::make_variable_value(id, 2),
+        Kokkos::Tuning::make_variable_value(id, 4),
+        Kokkos::Tuning::make_variable_value(id, 8),
+        Kokkos::Tuning::make_variable_value(id, 16),
+        Kokkos::Tuning::make_variable_value(id, 32),
+        Kokkos::Tuning::make_variable_value(id, 64),
+        Kokkos::Tuning::make_variable_value(id, 128),
+        Kokkos::Tuning::make_variable_value(id, 256),
+        Kokkos::Tuning::make_variable_value(id, 512),
+        Kokkos::Tuning::make_variable_value(id, 1024),
+        Kokkos::Tuning::make_variable_value(id, 2048),
+        Kokkos::Tuning::make_variable_value(id, 4096)};
     block_size.value.set = Kokkos::Tuning::ValueSet{13, block_sizes};
-    id                   = Kokkos::Tuning::getNewVariableId();
     Kokkos::Tuning::declareTuningVariable("kokkos.cuda.block_size", id,
                                           block_size);
   }
@@ -388,8 +388,9 @@ int cuda_get_opt_block_size(const typename DriverType::functor_type& f,
                                             shmem_extra_thread);
 #ifdef KOKKOS_ENABLE_TUNING
   if (Kokkos::Tuning::haveTuningTool()) {
+    size_t block_size_id = getBlockSizeVariableId();
     Kokkos::Tuning::VariableValue default_values[] = {
-        Kokkos::Tuning::make_variable_value(kokkos_suggested_block_size)};
+        Kokkos::Tuning::make_variable_value(getBlockSizeVariableId(),kokkos_suggested_block_size)};
     // the variableIds are the unique ID's for the variables a tool is being
     // requested to provide
     size_t variableIds[] = {getBlockSizeVariableId()};
@@ -470,9 +471,10 @@ int cuda_get_opt_block_size(const CudaInternal* cuda_instance,
   kokkos_suggested_block_size = opt_block_size;
 #ifdef KOKKOS_ENABLE_TUNING
   if (Kokkos::Tuning::haveTuningTool()) {
+    size_t block_size_id = getBlockSizeVariableId();
     Kokkos::Tuning::VariableValue default_values[] = {
-        Kokkos::Tuning::make_variable_value(kokkos_suggested_block_size)};
-    size_t variableIds[] = {getBlockSizeVariableId()};
+        Kokkos::Tuning::make_variable_value(block_size_id,kokkos_suggested_block_size)};
+    size_t variableIds[] = {block_size_id};
     Kokkos::Tuning::requestTuningVariableValues(
         Kokkos::Tuning::getCurrentContextId(), 1, variableIds, default_values);
     kokkos_suggested_block_size = default_values[0].value.int_value;
