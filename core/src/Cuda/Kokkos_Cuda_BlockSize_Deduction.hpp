@@ -360,18 +360,11 @@ int cuda_get_opt_block_size(const typename DriverType::functor_type& f,
      *
      * I've implemented 3, with the default option being to give the tool valid values. It's cumbersome.
      */
-#ifndef KOKKOS_EXCLUSIVELY_USE_TUNED_VALUES 
     kokkos_suggested_block_size = CudaGetOptBlockSize<
         DriverType, LaunchBounds,
-        // LaunchBounds::launch_mechanism == Kokkos::Experimental::LaunchDefault ?
-        //            (( CudaTraits::ConstantMemoryUseThreshold <
-        //            sizeof(DriverType) )?
-        //                   Kokkos::Experimental::CudaLaunchConstantMemory:Kokkos::Experimental::CudaLaunchLocalMemory):
-        //             LaunchBounds::launch_mechanism
         (CudaTraits::ConstantMemoryUseThreshold <
          sizeof(DriverType))>::get_block_size(f, vector_length, shmem_extra_block,
                                               shmem_extra_thread);
-#endif
 #ifdef KOKKOS_ENABLE_TUNING
     if(Kokkos::Tuning::haveTuningTool()) {
       size_t uniqIds[] = {0};
@@ -390,15 +383,6 @@ int cuda_get_opt_block_size(const CudaInternal* cuda_instance,
                             const size_t shmem_block,
                             const size_t shmem_thread) {
     int kokkos_suggested_block_size;
-#ifndef KOKKOS_EXCLUSIVELY_USE_TUNED_VALUES 
-    /** TODO DZP:
-     * discuss if we want to give tools default values for their tuning parameters based on our calculations
-     * 1) Always
-     * 2) Never
-     * 3) As an option
-     *
-     * I've implemented 3, with the default option being to give the tool valid values. It's cumbersome.
-     */
   const int min_blocks_per_sm =
       LaunchBounds::minBperSM == 0 ? 1 : LaunchBounds::minBperSM;
   const int max_threads_per_block = LaunchBounds::maxTperB == 0
@@ -458,7 +442,6 @@ int cuda_get_opt_block_size(const CudaInternal* cuda_instance,
     }
     block_size -= 32;
   }
-#endif
   kokkos_suggested_block_size = opt_block_size;
 #ifdef KOKKOS_ENABLE_TUNING
     if(Kokkos::Tuning::haveTuningTool()) {
