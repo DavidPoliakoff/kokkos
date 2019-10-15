@@ -382,14 +382,6 @@ int cuda_get_opt_block_size(const typename DriverType::functor_type& f,
                             const size_t shmem_extra_thread) {
 
     int kokkos_suggested_block_size;
-    /** TODO DZP:
-     * discuss if we want to give tools default values for their tuning parameters based on our calculations
-     * 1) Always
-     * 2) Never
-     * 3) As an option
-     *
-     * I've implemented 3, with the default option being to give the tool valid values. It's cumbersome.
-     */
     kokkos_suggested_block_size = CudaGetOptBlockSize<
         DriverType, LaunchBounds,
         (CudaTraits::ConstantMemoryUseThreshold <
@@ -398,6 +390,7 @@ int cuda_get_opt_block_size(const typename DriverType::functor_type& f,
 #ifdef KOKKOS_ENABLE_TUNING
     if(Kokkos::Tuning::haveTuningTool()) {
       Kokkos::Tuning::VariableValue default_values[] = {Kokkos::Tuning::make_variable_value(kokkos_suggested_block_size)};
+      // the variableIds are the unique ID's for the variables a tool is being requested to provide
       size_t variableIds[] = { getBlockSizeVariableId() };
       Kokkos::Tuning::requestTuningVariableValues(Kokkos::Tuning::getCurrentContextId(), 1, variableIds, default_values);
       kokkos_suggested_block_size = default_values[0].value.int_value;
