@@ -70,6 +70,7 @@ union Kokkos_Tuning_VariableValue_ValueUnion {
 };
 
 struct Kokkos_Tuning_VariableValue {
+ size_t id;
  union Kokkos_Tuning_VariableValue_ValueUnion value;
 };
 

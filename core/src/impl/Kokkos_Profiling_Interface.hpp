@@ -77,16 +77,9 @@ using VariableInfo        = Kokkos_Tuning_VariableInfo;
 
 using VariableValue = Kokkos_Tuning_VariableValue;
 
-namespace impl {
-VariableValue make_variable_value(int val);
-VariableValue make_variable_value(double val);
-VariableValue make_variable_value(const char* val);
-}  // namespace impl
-
-template <typename T>
-VariableValue make_variable_value(T&& in) {
-  return impl::make_variable_value(std::forward<T>(in));
-}
+VariableValue make_variable_value(size_t id, int val);
+VariableValue make_variable_value(size_t id, double val);
+VariableValue make_variable_value(size_t id, const char* val);
 
 }  // end namespace Tuning
 

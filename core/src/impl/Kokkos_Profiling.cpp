@@ -341,23 +341,24 @@ void endContext(size_t contextId) {
 
 bool haveTuningTool() { return (nullptr != tuningVariableValueCallee); }
 
-namespace impl {
-VariableValue make_variable_value(int val) {
+VariableValue make_variable_value(size_t id, int val) {
   VariableValue variable_value;
+  variable_value.id = id;
   variable_value.value.int_value = val;
   return variable_value;
 }
-VariableValue make_variable_value(double val) {
+VariableValue make_variable_value(size_t id, double val) {
   VariableValue variable_value;
+  variable_value.id = id;
   variable_value.value.double_value = val;
   return variable_value;
 }
-VariableValue make_variable_value(const char* val) {
+VariableValue make_variable_value(size_t id, const char* val) {
   VariableValue variable_value;
+  variable_value.id = id;
   variable_value.value.string_value = val;
   return variable_value;
 }
-}  // namespace impl
 
 }  // end namespace Tuning
 
