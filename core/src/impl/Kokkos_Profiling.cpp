@@ -57,28 +57,28 @@ namespace Profiling {
 static initFunction initProfileLibrary         = nullptr;
 static finalizeFunction finalizeProfileLibrary = nullptr;
 
-static beginFunction beginForCallee    = nullptr;
-static beginFunction beginScanCallee   = nullptr;
-static beginFunction beginReduceCallee = nullptr;
-static endFunction endForCallee        = nullptr;
-static endFunction endScanCallee       = nullptr;
-static endFunction endReduceCallee     = nullptr;
+static beginFunction beginForCallback    = nullptr;
+static beginFunction beginScanCallback   = nullptr;
+static beginFunction beginReduceCallback = nullptr;
+static endFunction endForCallback        = nullptr;
+static endFunction endScanCallback       = nullptr;
+static endFunction endReduceCallback     = nullptr;
 
-static pushFunction pushRegionCallee = nullptr;
-static popFunction popRegionCallee   = nullptr;
+static pushFunction pushRegionCallback = nullptr;
+static popFunction popRegionCallback   = nullptr;
 
-static allocateDataFunction allocateDataCallee     = nullptr;
-static deallocateDataFunction deallocateDataCallee = nullptr;
+static allocateDataFunction allocateDataCallback     = nullptr;
+static deallocateDataFunction deallocateDataCallback = nullptr;
 
-static beginDeepCopyFunction beginDeepCopyCallee = nullptr;
-static endDeepCopyFunction endDeepCopyCallee     = nullptr;
+static beginDeepCopyFunction beginDeepCopyCallback = nullptr;
+static endDeepCopyFunction endDeepCopyCallback     = nullptr;
 
-static createProfileSectionFunction createSectionCallee   = nullptr;
-static startProfileSectionFunction startSectionCallee     = nullptr;
-static stopProfileSectionFunction stopSectionCallee       = nullptr;
-static destroyProfileSectionFunction destroySectionCallee = nullptr;
+static createProfileSectionFunction createSectionCallback   = nullptr;
+static startProfileSectionFunction startSectionCallback     = nullptr;
+static stopProfileSectionFunction stopSectionCallback       = nullptr;
+static destroyProfileSectionFunction destroySectionCallback = nullptr;
 
-static profileEventFunction profileEventCallee = nullptr;
+static profileEventFunction profileEventCallback = nullptr;
 }  // end namespace Profiling
 
 namespace Tuning {
@@ -89,12 +89,12 @@ size_t getNewVariableId();
 
 static size_t kernel_name_context_variable_id;
 static size_t kernel_type_context_variable_id;
-static tuningVariableDeclarationFunction tuningVariableDeclarationCallee =
+static tuningVariableDeclarationFunction tuningVariableDeclarationCallback =
     nullptr;
-static tuningVariableValueFunction tuningVariableValueCallee = nullptr;
-static contextVariableDeclarationFunction contextVariableDeclarationCallee =
+static tuningVariableValueFunction tuningVariableValueCallback = nullptr;
+static contextVariableDeclarationFunction contextVariableDeclarationCallback =
     nullptr;
-static contextEndFunction contextEndCallee = nullptr;
+static contextEndFunction contextEndCallback = nullptr;
 
 }  // end namespace Tuning
 
@@ -104,9 +104,9 @@ bool profileLibraryLoaded() { return (initProfileLibrary != nullptr); }
 
 void beginParallelFor(const std::string& kernelPrefix, const uint32_t devID,
                       uint64_t* kernelID) {
-  if (beginForCallee != nullptr) {
+  if (beginForCallback != nullptr) {
     Kokkos::fence();
-    (*beginForCallee)(kernelPrefix.c_str(), devID, kernelID);
+    (*beginForCallback)(kernelPrefix.c_str(), devID, kernelID);
 #ifdef KOKKOS_ENABLE_TUNING
     size_t uniqIds[] = {Kokkos::Tuning::kernel_name_context_variable_id,
                         Kokkos::Tuning::kernel_type_context_variable_id};
@@ -123,9 +123,9 @@ void beginParallelFor(const std::string& kernelPrefix, const uint32_t devID,
 }
 
 void endParallelFor(const uint64_t kernelID) {
-  if (endForCallee != nullptr) {
+  if (endForCallback != nullptr) {
     Kokkos::fence();
-    (*endForCallee)(kernelID);
+    (*endForCallback)(kernelID);
 #ifdef KOKKOS_ENABLE_TUNING
     Kokkos::Tuning::endContext(Kokkos::Tuning::getCurrentContextId());
 #endif
@@ -134,9 +134,9 @@ void endParallelFor(const uint64_t kernelID) {
 
 void beginParallelScan(const std::string& kernelPrefix, const uint32_t devID,
                        uint64_t* kernelID) {
-  if (beginScanCallee != nullptr) {
+  if (beginScanCallback != nullptr) {
     Kokkos::fence();
-    (*beginScanCallee)(kernelPrefix.c_str(), devID, kernelID);
+    (*beginScanCallback)(kernelPrefix.c_str(), devID, kernelID);
 #ifdef KOKKOS_ENABLE_TUNING
     size_t uniqIds[] = {Kokkos::Tuning::kernel_name_context_variable_id,
                         Kokkos::Tuning::kernel_type_context_variable_id};
@@ -153,9 +153,9 @@ void beginParallelScan(const std::string& kernelPrefix, const uint32_t devID,
 }
 
 void endParallelScan(const uint64_t kernelID) {
-  if (endScanCallee != nullptr) {
+  if (endScanCallback != nullptr) {
     Kokkos::fence();
-    (*endScanCallee)(kernelID);
+    (*endScanCallback)(kernelID);
 #ifdef KOKKOS_ENABLE_TUNING
     Kokkos::Tuning::endContext(Kokkos::Tuning::getCurrentContextId());
 #endif
@@ -164,9 +164,9 @@ void endParallelScan(const uint64_t kernelID) {
 
 void beginParallelReduce(const std::string& kernelPrefix, const uint32_t devID,
                          uint64_t* kernelID) {
-  if (beginReduceCallee != nullptr) {
+  if (beginReduceCallback != nullptr) {
     Kokkos::fence();
-    (*beginReduceCallee)(kernelPrefix.c_str(), devID, kernelID);
+    (*beginReduceCallback)(kernelPrefix.c_str(), devID, kernelID);
 #ifdef KOKKOS_ENABLE_TUNING
     size_t uniqIds[] = {Kokkos::Tuning::kernel_name_context_variable_id,
                         Kokkos::Tuning::kernel_type_context_variable_id};
@@ -183,9 +183,9 @@ void beginParallelReduce(const std::string& kernelPrefix, const uint32_t devID,
 }
 
 void endParallelReduce(const uint64_t kernelID) {
-  if (endReduceCallee != nullptr) {
+  if (endReduceCallback != nullptr) {
     Kokkos::fence();
-    (*endReduceCallee)(kernelID);
+    (*endReduceCallback)(kernelID);
   }
 #ifdef KOKKOS_ENABLE_TUNING
   Kokkos::Tuning::endContext(Kokkos::Tuning::getCurrentContextId());
@@ -193,30 +193,30 @@ void endParallelReduce(const uint64_t kernelID) {
 }
 
 void pushRegion(const std::string& kName) {
-  if (pushRegionCallee != nullptr) {
+  if (pushRegionCallback != nullptr) {
     Kokkos::fence();
-    (*pushRegionCallee)(kName.c_str());
+    (*pushRegionCallback)(kName.c_str());
   }
 }
 
 void popRegion() {
-  if (popRegionCallee != nullptr) {
+  if (popRegionCallback != nullptr) {
     Kokkos::fence();
-    (*popRegionCallee)();
+    (*popRegionCallback)();
   }
 }
 
 void allocateData(const SpaceHandle space, const std::string label,
                   const void* ptr, const uint64_t size) {
-  if (allocateDataCallee != nullptr) {
-    (*allocateDataCallee)(space, label.c_str(), ptr, size);
+  if (allocateDataCallback != nullptr) {
+    (*allocateDataCallback)(space, label.c_str(), ptr, size);
   }
 }
 
 void deallocateData(const SpaceHandle space, const std::string label,
                     const void* ptr, const uint64_t size) {
-  if (deallocateDataCallee != nullptr) {
-    (*deallocateDataCallee)(space, label.c_str(), ptr, size);
+  if (deallocateDataCallback != nullptr) {
+    (*deallocateDataCallback)(space, label.c_str(), ptr, size);
   }
 }
 
@@ -224,9 +224,9 @@ void beginDeepCopy(const SpaceHandle dst_space, const std::string dst_label,
                    const void* dst_ptr, const SpaceHandle src_space,
                    const std::string src_label, const void* src_ptr,
                    const uint64_t size) {
-  if (beginDeepCopyCallee != nullptr) {
-    (*beginDeepCopyCallee)(dst_space, dst_label.c_str(), dst_ptr, src_space,
-                           src_label.c_str(), src_ptr, size);
+  if (beginDeepCopyCallback != nullptr) {
+    (*beginDeepCopyCallback)(dst_space, dst_label.c_str(), dst_ptr, src_space,
+                             src_label.c_str(), src_ptr, size);
 #ifdef KOKKOS_ENABLE_TUNING
     size_t uniqIds[] = {Kokkos::Tuning::kernel_name_context_variable_id,
                         Kokkos::Tuning::kernel_type_context_variable_id};
@@ -245,8 +245,8 @@ void beginDeepCopy(const SpaceHandle dst_space, const std::string dst_label,
 }
 
 void endDeepCopy() {
-  if (endDeepCopyCallee != nullptr) {
-    (*endDeepCopyCallee)();
+  if (endDeepCopyCallback != nullptr) {
+    (*endDeepCopyCallback)();
 #ifdef KOKKOS_ENABLE_TUNING
     Kokkos::Tuning::endContext(Kokkos::Tuning::getCurrentContextId());
 #endif
@@ -254,32 +254,32 @@ void endDeepCopy() {
 }
 
 void createProfileSection(const std::string& sectionName, uint32_t* secID) {
-  if (createSectionCallee != nullptr) {
-    (*createSectionCallee)(sectionName.c_str(), secID);
+  if (createSectionCallback != nullptr) {
+    (*createSectionCallback)(sectionName.c_str(), secID);
   }
 }
 
 void startSection(const uint32_t secID) {
-  if (startSectionCallee != nullptr) {
-    (*startSectionCallee)(secID);
+  if (startSectionCallback != nullptr) {
+    (*startSectionCallback)(secID);
   }
 }
 
 void stopSection(const uint32_t secID) {
-  if (stopSectionCallee != nullptr) {
-    (*stopSectionCallee)(secID);
+  if (stopSectionCallback != nullptr) {
+    (*stopSectionCallback)(secID);
   }
 }
 
 void destroyProfileSection(const uint32_t secID) {
-  if (destroySectionCallee != nullptr) {
-    (*destroySectionCallee)(secID);
+  if (destroySectionCallback != nullptr) {
+    (*destroySectionCallback)(secID);
   }
 }
 
 void markEvent(const std::string& eventName) {
-  if (profileEventCallee != nullptr) {
-    (*profileEventCallee)(eventName.c_str());
+  if (profileEventCallback != nullptr) {
+    (*profileEventCallback)(eventName.c_str());
   }
 }
 
@@ -300,15 +300,15 @@ static std::unordered_map<size_t, VariableValue> feature_values;
 
 void declareTuningVariable(const std::string& variableName, size_t uniqID,
                            VariableInfo info) {
-  if (tuningVariableDeclarationCallee != nullptr) {
-    (*tuningVariableDeclarationCallee)(variableName.c_str(), uniqID, info);
+  if (tuningVariableDeclarationCallback != nullptr) {
+    (*tuningVariableDeclarationCallback)(variableName.c_str(), uniqID, info);
   }
 }
 
 void declareContextVariable(const std::string& variableName, size_t uniqID,
                             VariableInfo info) {
-  if (contextVariableDeclarationCallee != nullptr) {
-    (*contextVariableDeclarationCallee)(variableName.c_str(), uniqID, info);
+  if (contextVariableDeclarationCallback != nullptr) {
+    (*contextVariableDeclarationCallback)(variableName.c_str(), uniqID, info);
   }
 }
 
@@ -334,10 +334,10 @@ void requestTuningVariableValues(size_t contextId, size_t count,
     context_ids.push_back(id);
     context_values.push_back(feature_values[id]);
   }
-  if (tuningVariableValueCallee != nullptr) {
-    (*tuningVariableValueCallee)(contextId, context_ids.size(),
-                                 context_ids.data(), context_values.data(),
-                                 count, uniqIds, values);
+  if (tuningVariableValueCallback != nullptr) {
+    (*tuningVariableValueCallback)(contextId, context_ids.size(),
+                                   context_ids.data(), context_values.data(),
+                                   count, uniqIds, values);
   }
 }
 
@@ -345,13 +345,13 @@ void endContext(size_t contextId) {
   for (auto id : features_per_context[contextId]) {
     active_features.erase(id);
   }
-  if (Kokkos::Tuning::contextEndCallee != nullptr) {
-    (*contextEndCallee)(contextId);
+  if (Kokkos::Tuning::contextEndCallback != nullptr) {
+    (*contextEndCallback)(contextId);
   }
   decrementCurrentContextId();
 }
 
-bool haveTuningTool() { return (tuningVariableValueCallee != nullptr); }
+bool haveTuningTool() { return (tuningVariableValueCallback != nullptr); }
 
 VariableValue make_variable_value(size_t id, bool val) {
   VariableValue variable_value;
@@ -423,19 +423,19 @@ void initialize() {
       // dlsym returns a pointer to an object, while we want to assign to
       // pointer to function A direct cast will give warnings hence, we have to
       // workaround the issue by casting pointer to pointers.
-      auto p1        = dlsym(firstProfileLibrary, "kokkosp_begin_parallel_for");
-      beginForCallee = reinterpret_cast<beginFunction>(p1);
+      auto p1 = dlsym(firstProfileLibrary, "kokkosp_begin_parallel_for");
+      beginForCallback = reinterpret_cast<beginFunction>(p1);
       auto p2 = dlsym(firstProfileLibrary, "kokkosp_begin_parallel_scan");
-      beginScanCallee = reinterpret_cast<beginFunction>(p2);
+      beginScanCallback = reinterpret_cast<beginFunction>(p2);
       auto p3 = dlsym(firstProfileLibrary, "kokkosp_begin_parallel_reduce");
-      beginReduceCallee = reinterpret_cast<beginFunction>(p3);
+      beginReduceCallback = reinterpret_cast<beginFunction>(p3);
 
-      auto p4       = dlsym(firstProfileLibrary, "kokkosp_end_parallel_scan");
-      endScanCallee = reinterpret_cast<endFunction>(p4);
-      auto p5       = dlsym(firstProfileLibrary, "kokkosp_end_parallel_for");
-      endForCallee  = reinterpret_cast<endFunction>(p5);
-      auto p6       = dlsym(firstProfileLibrary, "kokkosp_end_parallel_reduce");
-      endReduceCallee = reinterpret_cast<endFunction>(p6);
+      auto p4         = dlsym(firstProfileLibrary, "kokkosp_end_parallel_scan");
+      endScanCallback = reinterpret_cast<endFunction>(p4);
+      auto p5         = dlsym(firstProfileLibrary, "kokkosp_end_parallel_for");
+      endForCallback  = reinterpret_cast<endFunction>(p5);
+      auto p6 = dlsym(firstProfileLibrary, "kokkosp_end_parallel_reduce");
+      endReduceCallback = reinterpret_cast<endFunction>(p6);
 
       auto p7            = dlsym(firstProfileLibrary, "kokkosp_init_library");
       initProfileLibrary = reinterpret_cast<initFunction>(p7);
@@ -443,48 +443,49 @@ void initialize() {
       finalizeProfileLibrary = reinterpret_cast<finalizeFunction>(p8);
 
       auto p9 = dlsym(firstProfileLibrary, "kokkosp_push_profile_region");
-      pushRegionCallee = reinterpret_cast<pushFunction>(p9);
+      pushRegionCallback = reinterpret_cast<pushFunction>(p9);
       auto p10 = dlsym(firstProfileLibrary, "kokkosp_pop_profile_region");
-      popRegionCallee = reinterpret_cast<popFunction>(p10);
+      popRegionCallback = reinterpret_cast<popFunction>(p10);
 
-      auto p11           = dlsym(firstProfileLibrary, "kokkosp_allocate_data");
-      allocateDataCallee = reinterpret_cast<allocateDataFunction>(p11);
+      auto p11 = dlsym(firstProfileLibrary, "kokkosp_allocate_data");
+      allocateDataCallback = reinterpret_cast<allocateDataFunction>(p11);
       auto p12 = dlsym(firstProfileLibrary, "kokkosp_deallocate_data");
-      deallocateDataCallee = reinterpret_cast<deallocateDataFunction>(p12);
+      deallocateDataCallback = reinterpret_cast<deallocateDataFunction>(p12);
 
       auto p13 = dlsym(firstProfileLibrary, "kokkosp_begin_deep_copy");
-      beginDeepCopyCallee = reinterpret_cast<beginDeepCopyFunction>(p13);
+      beginDeepCopyCallback = reinterpret_cast<beginDeepCopyFunction>(p13);
       auto p14            = dlsym(firstProfileLibrary, "kokkosp_end_deep_copy");
-      endDeepCopyCallee   = reinterpret_cast<endDeepCopyFunction>(p14);
+      endDeepCopyCallback = reinterpret_cast<endDeepCopyFunction>(p14);
 
       auto p15 = dlsym(firstProfileLibrary, "kokkosp_create_profile_section");
-      createSectionCallee = reinterpret_cast<createProfileSectionFunction>(p15);
+      createSectionCallback =
+          reinterpret_cast<createProfileSectionFunction>(p15);
       auto p16 = dlsym(firstProfileLibrary, "kokkosp_start_profile_section");
-      startSectionCallee = reinterpret_cast<startProfileSectionFunction>(p16);
+      startSectionCallback = reinterpret_cast<startProfileSectionFunction>(p16);
       auto p17 = dlsym(firstProfileLibrary, "kokkosp_stop_profile_section");
-      stopSectionCallee = reinterpret_cast<stopProfileSectionFunction>(p17);
+      stopSectionCallback = reinterpret_cast<stopProfileSectionFunction>(p17);
       auto p18 = dlsym(firstProfileLibrary, "kokkosp_destroy_profile_section");
-      destroySectionCallee =
+      destroySectionCallback =
           reinterpret_cast<destroyProfileSectionFunction>(p18);
 
-      auto p19           = dlsym(firstProfileLibrary, "kokkosp_profile_event");
-      profileEventCallee = reinterpret_cast<profileEventFunction>(p19);
+      auto p19 = dlsym(firstProfileLibrary, "kokkosp_profile_event");
+      profileEventCallback = reinterpret_cast<profileEventFunction>(p19);
 
       // TODO DZP: move to its own section
       auto p20 = dlsym(firstProfileLibrary, "kokkosp_declare_tuning_variable");
-      Kokkos::Tuning::tuningVariableDeclarationCallee =
+      Kokkos::Tuning::tuningVariableDeclarationCallback =
           reinterpret_cast<Kokkos::Tuning::tuningVariableDeclarationFunction>(
               p20);
       auto p21 = dlsym(firstProfileLibrary, "kokkosp_declare_context_variable");
-      Kokkos::Tuning::contextVariableDeclarationCallee =
+      Kokkos::Tuning::contextVariableDeclarationCallback =
           reinterpret_cast<Kokkos::Tuning::contextVariableDeclarationFunction>(
               p21);
       auto p22 =
           dlsym(firstProfileLibrary, "kokkosp_request_tuning_variable_values");
-      Kokkos::Tuning::tuningVariableValueCallee =
+      Kokkos::Tuning::tuningVariableValueCallback =
           reinterpret_cast<Kokkos::Tuning::tuningVariableValueFunction>(p22);
       auto p23 = dlsym(firstProfileLibrary, "kokkosp_end_context");
-      Kokkos::Tuning::contextEndCallee =
+      Kokkos::Tuning::contextEndCallback =
           reinterpret_cast<Kokkos::Tuning::contextEndFunction>(p23);
 
       Kokkos::Tuning::VariableInfo kernel_name;
@@ -550,33 +551,33 @@ void finalize() {
     initProfileLibrary     = nullptr;
     finalizeProfileLibrary = nullptr;
 
-    beginForCallee    = nullptr;
-    beginScanCallee   = nullptr;
-    beginReduceCallee = nullptr;
-    endScanCallee     = nullptr;
-    endForCallee      = nullptr;
-    endReduceCallee   = nullptr;
+    beginForCallback    = nullptr;
+    beginScanCallback   = nullptr;
+    beginReduceCallback = nullptr;
+    endScanCallback     = nullptr;
+    endForCallback      = nullptr;
+    endReduceCallback   = nullptr;
 
-    pushRegionCallee = nullptr;
-    popRegionCallee  = nullptr;
+    pushRegionCallback = nullptr;
+    popRegionCallback  = nullptr;
 
-    allocateDataCallee   = nullptr;
-    deallocateDataCallee = nullptr;
+    allocateDataCallback   = nullptr;
+    deallocateDataCallback = nullptr;
 
-    beginDeepCopyCallee = nullptr;
-    endDeepCopyCallee   = nullptr;
+    beginDeepCopyCallback = nullptr;
+    endDeepCopyCallback   = nullptr;
 
-    createSectionCallee  = nullptr;
-    startSectionCallee   = nullptr;
-    stopSectionCallee    = nullptr;
-    destroySectionCallee = nullptr;
+    createSectionCallback  = nullptr;
+    startSectionCallback   = nullptr;
+    stopSectionCallback    = nullptr;
+    destroySectionCallback = nullptr;
 
-    profileEventCallee = nullptr;
+    profileEventCallback = nullptr;
     // TODO DZP: move to its own section
-    Kokkos::Tuning::tuningVariableDeclarationCallee  = nullptr;
-    Kokkos::Tuning::contextVariableDeclarationCallee = nullptr;
-    Kokkos::Tuning::tuningVariableValueCallee        = nullptr;
-    Kokkos::Tuning::contextEndCallee                 = nullptr;
+    Kokkos::Tuning::tuningVariableDeclarationCallback  = nullptr;
+    Kokkos::Tuning::contextVariableDeclarationCallback = nullptr;
+    Kokkos::Tuning::tuningVariableValueCallback        = nullptr;
+    Kokkos::Tuning::contextEndCallback                 = nullptr;
   }
 }
 }  // namespace Profiling
