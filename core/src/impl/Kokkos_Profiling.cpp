@@ -100,11 +100,11 @@ static contextEndFunction contextEndCallee = nullptr;
 
 namespace Profiling {
 
-bool profileLibraryLoaded() { return (nullptr != initProfileLibrary); }
+bool profileLibraryLoaded() { return (initProfileLibrary != nullptr); }
 
 void beginParallelFor(const std::string& kernelPrefix, const uint32_t devID,
                       uint64_t* kernelID) {
-  if (nullptr != beginForCallee) {
+  if (beginForCallee != nullptr) {
     Kokkos::fence();
     (*beginForCallee)(kernelPrefix.c_str(), devID, kernelID);
 #ifdef KOKKOS_ENABLE_TUNING
@@ -123,7 +123,7 @@ void beginParallelFor(const std::string& kernelPrefix, const uint32_t devID,
 }
 
 void endParallelFor(const uint64_t kernelID) {
-  if (nullptr != endForCallee) {
+  if (endForCallee != nullptr) {
     Kokkos::fence();
     (*endForCallee)(kernelID);
 #ifdef KOKKOS_ENABLE_TUNING
@@ -134,7 +134,7 @@ void endParallelFor(const uint64_t kernelID) {
 
 void beginParallelScan(const std::string& kernelPrefix, const uint32_t devID,
                        uint64_t* kernelID) {
-  if (nullptr != beginScanCallee) {
+  if (beginScanCallee != nullptr) {
     Kokkos::fence();
     (*beginScanCallee)(kernelPrefix.c_str(), devID, kernelID);
 #ifdef KOKKOS_ENABLE_TUNING
@@ -153,7 +153,7 @@ void beginParallelScan(const std::string& kernelPrefix, const uint32_t devID,
 }
 
 void endParallelScan(const uint64_t kernelID) {
-  if (nullptr != endScanCallee) {
+  if (endScanCallee != nullptr) {
     Kokkos::fence();
     (*endScanCallee)(kernelID);
 #ifdef KOKKOS_ENABLE_TUNING
@@ -164,7 +164,7 @@ void endParallelScan(const uint64_t kernelID) {
 
 void beginParallelReduce(const std::string& kernelPrefix, const uint32_t devID,
                          uint64_t* kernelID) {
-  if (nullptr != beginReduceCallee) {
+  if (beginReduceCallee != nullptr) {
     Kokkos::fence();
     (*beginReduceCallee)(kernelPrefix.c_str(), devID, kernelID);
 #ifdef KOKKOS_ENABLE_TUNING
@@ -183,7 +183,7 @@ void beginParallelReduce(const std::string& kernelPrefix, const uint32_t devID,
 }
 
 void endParallelReduce(const uint64_t kernelID) {
-  if (nullptr != endReduceCallee) {
+  if (endReduceCallee != nullptr) {
     Kokkos::fence();
     (*endReduceCallee)(kernelID);
   }
@@ -193,14 +193,14 @@ void endParallelReduce(const uint64_t kernelID) {
 }
 
 void pushRegion(const std::string& kName) {
-  if (nullptr != pushRegionCallee) {
+  if (pushRegionCallee != nullptr) {
     Kokkos::fence();
     (*pushRegionCallee)(kName.c_str());
   }
 }
 
 void popRegion() {
-  if (nullptr != popRegionCallee) {
+  if (popRegionCallee != nullptr) {
     Kokkos::fence();
     (*popRegionCallee)();
   }
@@ -208,14 +208,14 @@ void popRegion() {
 
 void allocateData(const SpaceHandle space, const std::string label,
                   const void* ptr, const uint64_t size) {
-  if (nullptr != allocateDataCallee) {
+  if (allocateDataCallee != nullptr) {
     (*allocateDataCallee)(space, label.c_str(), ptr, size);
   }
 }
 
 void deallocateData(const SpaceHandle space, const std::string label,
                     const void* ptr, const uint64_t size) {
-  if (nullptr != deallocateDataCallee) {
+  if (deallocateDataCallee != nullptr) {
     (*deallocateDataCallee)(space, label.c_str(), ptr, size);
   }
 }
@@ -224,7 +224,7 @@ void beginDeepCopy(const SpaceHandle dst_space, const std::string dst_label,
                    const void* dst_ptr, const SpaceHandle src_space,
                    const std::string src_label, const void* src_ptr,
                    const uint64_t size) {
-  if (nullptr != beginDeepCopyCallee) {
+  if (beginDeepCopyCallee != nullptr) {
     (*beginDeepCopyCallee)(dst_space, dst_label.c_str(), dst_ptr, src_space,
                            src_label.c_str(), src_ptr, size);
 #ifdef KOKKOS_ENABLE_TUNING
@@ -245,7 +245,7 @@ void beginDeepCopy(const SpaceHandle dst_space, const std::string dst_label,
 }
 
 void endDeepCopy() {
-  if (nullptr != endDeepCopyCallee) {
+  if (endDeepCopyCallee != nullptr) {
     (*endDeepCopyCallee)();
 #ifdef KOKKOS_ENABLE_TUNING
     Kokkos::Tuning::endContext(Kokkos::Tuning::getCurrentContextId());
@@ -254,31 +254,31 @@ void endDeepCopy() {
 }
 
 void createProfileSection(const std::string& sectionName, uint32_t* secID) {
-  if (nullptr != createSectionCallee) {
+  if (createSectionCallee != nullptr) {
     (*createSectionCallee)(sectionName.c_str(), secID);
   }
 }
 
 void startSection(const uint32_t secID) {
-  if (nullptr != startSectionCallee) {
+  if (startSectionCallee != nullptr) {
     (*startSectionCallee)(secID);
   }
 }
 
 void stopSection(const uint32_t secID) {
-  if (nullptr != stopSectionCallee) {
+  if (stopSectionCallee != nullptr) {
     (*stopSectionCallee)(secID);
   }
 }
 
 void destroyProfileSection(const uint32_t secID) {
-  if (nullptr != destroySectionCallee) {
+  if (destroySectionCallee != nullptr) {
     (*destroySectionCallee)(secID);
   }
 }
 
 void markEvent(const std::string& eventName) {
-  if (nullptr != profileEventCallee) {
+  if (profileEventCallee != nullptr) {
     (*profileEventCallee)(eventName.c_str());
   }
 }
@@ -300,14 +300,14 @@ static std::unordered_map<size_t, VariableValue> feature_values;
 
 void declareTuningVariable(const std::string& variableName, size_t uniqID,
                            VariableInfo info) {
-  if (nullptr != tuningVariableDeclarationCallee) {
+  if (tuningVariableDeclarationCallee != nullptr) {
     (*tuningVariableDeclarationCallee)(variableName.c_str(), uniqID, info);
   }
 }
 
 void declareContextVariable(const std::string& variableName, size_t uniqID,
                             VariableInfo info) {
-  if (nullptr != contextVariableDeclarationCallee) {
+  if (contextVariableDeclarationCallee != nullptr) {
     (*contextVariableDeclarationCallee)(variableName.c_str(), uniqID, info);
   }
 }
@@ -334,7 +334,7 @@ void requestTuningVariableValues(size_t contextId, size_t count,
     context_ids.push_back(id);
     context_values.push_back(feature_values[id]);
   }
-  if (nullptr != tuningVariableValueCallee) {
+  if (tuningVariableValueCallee != nullptr) {
     (*tuningVariableValueCallee)(contextId, context_ids.size(),
                                  context_ids.data(), context_values.data(),
                                  count, uniqIds, values);
@@ -345,13 +345,13 @@ void endContext(size_t contextId) {
   for (auto id : features_per_context[contextId]) {
     active_features.erase(id);
   }
-  if (nullptr != Kokkos::Tuning::contextEndCallee) {
+  if (Kokkos::Tuning::contextEndCallee != nullptr) {
     (*contextEndCallee)(contextId);
   }
   decrementCurrentContextId();
 }
 
-bool haveTuningTool() { return (nullptr != tuningVariableValueCallee); }
+bool haveTuningTool() { return (tuningVariableValueCallee != nullptr); }
 
 VariableValue make_variable_value(size_t id, bool val) {
   VariableValue variable_value;
@@ -394,7 +394,7 @@ void initialize() {
 
   // If we do not find a profiling library in the environment then exit
   // early.
-  if (nullptr == envProfileLibrary) {
+  if (envProfileLibrary == nullptr) {
     return;
   }
 
@@ -404,11 +404,11 @@ void initialize() {
 
   char* profileLibraryName = strtok(envProfileCopy, ";");
 
-  if ((nullptr != profileLibraryName) &&
+  if ((profileLibraryName != nullptr) &&
       (strcmp(profileLibraryName, "") != 0)) {
     firstProfileLibrary = dlopen(profileLibraryName, RTLD_NOW | RTLD_GLOBAL);
 
-    if (nullptr == firstProfileLibrary) {
+    if (firstProfileLibrary == nullptr) {
       std::cerr << "Error: Unable to load KokkosP library: "
                 << profileLibraryName << std::endl;
       std::cerr << "dlopen(" << profileLibraryName
@@ -524,7 +524,7 @@ void initialize() {
     }
   }
 
-  if (nullptr != initProfileLibrary) {
+  if (initProfileLibrary != nullptr) {
     (*initProfileLibrary)(0, (uint64_t)KOKKOSP_INTERFACE_VERSION, (uint32_t)0,
                           nullptr);
   }
@@ -538,7 +538,7 @@ void finalize() {
   if (is_finalized) return;
   is_finalized = 1;
 
-  if (nullptr != finalizeProfileLibrary) {
+  if (finalizeProfileLibrary != nullptr) {
     (*finalizeProfileLibrary)();
 
     // Set all profile hooks to nullptr to prevent
