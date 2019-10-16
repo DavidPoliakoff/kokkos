@@ -118,9 +118,7 @@ struct Kokkos_Tuning_VariableInfo {
   enum Kokkos_Tuning_VariableInfo_ValueType type;
   enum Kokkos_Tuning_VariableInfo_StatisticalCategory category;
   enum Kokkos_Tuning_VariableInfo_CandidateValueType valueQuantity;
-  union Kokkos_Tuning_VariableInfo_SetOrRange value;
 };
-
 
 typedef void (*Kokkos_Profiling_initFunction)(const int, const uint64_t, const uint32_t,
                             Kokkos_Profiling_KokkosPDeviceInfo*);

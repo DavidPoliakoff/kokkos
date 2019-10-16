@@ -76,21 +76,6 @@ static size_t getBlockSizeVariableId() {
         Kokkos::Tuning::StatisticalCategory::kokkos_value_ratio;
     block_size.valueQuantity =
         Kokkos::Tuning::CandidateValueType::kokkos_value_set;
-    Kokkos::Tuning::VariableValue block_sizes[] = {
-        Kokkos::Tuning::make_variable_value(id, 1),
-        Kokkos::Tuning::make_variable_value(id, 2),
-        Kokkos::Tuning::make_variable_value(id, 4),
-        Kokkos::Tuning::make_variable_value(id, 8),
-        Kokkos::Tuning::make_variable_value(id, 16),
-        Kokkos::Tuning::make_variable_value(id, 32),
-        Kokkos::Tuning::make_variable_value(id, 64),
-        Kokkos::Tuning::make_variable_value(id, 128),
-        Kokkos::Tuning::make_variable_value(id, 256),
-        Kokkos::Tuning::make_variable_value(id, 512),
-        Kokkos::Tuning::make_variable_value(id, 1024),
-        Kokkos::Tuning::make_variable_value(id, 2048),
-        Kokkos::Tuning::make_variable_value(id, 4096)};
-    block_size.value.set = Kokkos::Tuning::ValueSet{13, block_sizes};
     Kokkos::Tuning::declareTuningVariable("kokkos.cuda.block_size", id,
                                           block_size);
   }

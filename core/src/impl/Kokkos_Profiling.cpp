@@ -509,19 +509,6 @@ void initialize() {
       kernel_type.valueQuantity =
           Kokkos::Tuning::CandidateValueType::kokkos_value_set;
 
-      Kokkos::Tuning::VariableValue values[] = {
-          Kokkos::Tuning::make_variable_value(
-              Kokkos::Tuning::kernel_type_context_variable_id, "parallel_for"),
-          Kokkos::Tuning::make_variable_value(
-              Kokkos::Tuning::kernel_type_context_variable_id,
-              "parallel_reduce"),
-          Kokkos::Tuning::make_variable_value(
-              Kokkos::Tuning::kernel_type_context_variable_id, "parallel_scan"),
-          Kokkos::Tuning::make_variable_value(
-              Kokkos::Tuning::kernel_type_context_variable_id, "deep_copy")};
-
-      kernel_type.value.set = Kokkos::Tuning::ValueSet{4, values};
-
       Kokkos::Tuning::declareContextVariable(
           "kokkos.kernel_type", Kokkos::Tuning::kernel_type_context_variable_id,
           kernel_type);
