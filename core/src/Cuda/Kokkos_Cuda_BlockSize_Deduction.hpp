@@ -399,6 +399,7 @@ int cuda_get_opt_block_size(const typename DriverType::functor_type& f,
     // To figure out what the valid block sizes are, we count the powers of 2 between the suggested block size and our minimum block size
     size_t num_valid_block_sizes = utility::log2(kokkos_suggested_block_size) - utility::log2(Kokkos::Impl::all_block_sizes[0].value.int_value); // TODO DZP: check this thoroughly
     Kokkos::Tuning::SetOrRange candidate_values;
+    candidate_values.set.id = getBlockSizeVariableId();
     candidate_values.set.size = num_valid_block_sizes;
     candidate_values.set.values = Kokkos::Impl::all_block_sizes.data();
     Kokkos::Tuning::requestTuningVariableValues(
@@ -486,6 +487,7 @@ int cuda_get_opt_block_size(const CudaInternal* cuda_instance,
     size_t variableIds[] = {block_size_id};
     const size_t max_block_size = attr.maxThreadsPerBlock;
     Kokkos::Tuning::SetOrRange candidate_values;
+    candidate_values.set.id = getBlockSizeVariableId();
     candidate_values.set.size = utility::log2(max_block_size) - utility::log2(Kokkos::Impl::all_block_sizes[0].value.int_value);
     candidate_values.set.values = Kokkos::Impl::all_block_sizes.data();
     Kokkos::Tuning::requestTuningVariableValues(
