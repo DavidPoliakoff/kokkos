@@ -7,6 +7,10 @@
 namespace Kokkos {
 namespace Impl {
 
+#ifdef KOKKOS_ENABLE_TUNING
+std::vector<Kokkos::Tuning::VariableValue> all_block_sizes;
+#endif 
+
 struct CudaTraits {
   enum { WarpSize = 32 /* 0x0020 */ };
   enum { WarpIndexMask = 0x001f /* Mask for warpindex */ };

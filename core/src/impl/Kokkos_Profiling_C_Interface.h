@@ -147,8 +147,8 @@ typedef void (*Kokkos_Profiling_beginDeepCopyFunction)(Kokkos_Profiling_SpaceHan
 typedef void (*Kokkos_Profiling_endDeepCopyFunction)();
 
 typedef void (*Kokkos_Tuning_tuningVariableDeclarationFunction)(const char*, const size_t, Kokkos_Tuning_VariableInfo info); 
-typedef void (*Kokkos_Tuning_contextVariableDeclarationFunction)(const char*, const size_t, Kokkos_Tuning_VariableInfo info); 
-typedef void (*Kokkos_Tuning_tuningVariableValueFunction)(const size_t, const size_t, const size_t*, const Kokkos_Tuning_VariableValue*, const size_t count, const size_t* uniqIds, Kokkos_Tuning_VariableValue*);
+typedef void (*Kokkos_Tuning_contextVariableDeclarationFunction)(const char*, const size_t, Kokkos_Tuning_VariableInfo info, Kokkos_Tuning_VariableInfo_SetOrRange); 
+typedef void (*Kokkos_Tuning_tuningVariableValueFunction)(const size_t, const size_t, const size_t*, const Kokkos_Tuning_VariableValue*, const size_t count, const size_t* uniqIds, Kokkos_Tuning_VariableValue*, Kokkos_Tuning_VariableInfo_SetOrRange*);
 typedef void (*Kokkos_Tuning_contextVariableValueFunction)(const size_t contextId, const size_t count, const size_t* uniqIds, Kokkos_Tuning_VariableValue* values);
 typedef void (*Kokkos_Tuning_contextEndFunction)(const size_t);
 

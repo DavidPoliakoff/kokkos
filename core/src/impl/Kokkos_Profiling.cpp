@@ -306,9 +306,11 @@ void declareTuningVariable(const std::string& variableName, size_t uniqID,
 }
 
 void declareContextVariable(const std::string& variableName, size_t uniqID,
-                            VariableInfo info) {
+                            VariableInfo info,
+                            Kokkos::Tuning::SetOrRange candidate_values) {
   if (contextVariableDeclarationCallback != nullptr) {
-    (*contextVariableDeclarationCallback)(variableName.c_str(), uniqID, info);
+    (*contextVariableDeclarationCallback)(variableName.c_str(), uniqID, info,
+                                          candidate_values);
   }
 }
 
@@ -327,7 +329,8 @@ void declareContextVariableValues(size_t contextId, size_t count,
 }
 
 void requestTuningVariableValues(size_t contextId, size_t count,
-                                 size_t* uniqIds, VariableValue* values) {
+                                 size_t* uniqIds, VariableValue* values,
+                                 Kokkos::Tuning::SetOrRange* candidate_values) {
   std::vector<size_t> context_ids;
   std::vector<VariableValue> context_values;
   for (auto id : active_features) {
@@ -337,7 +340,7 @@ void requestTuningVariableValues(size_t contextId, size_t count,
   if (tuningVariableValueCallback != nullptr) {
     (*tuningVariableValueCallback)(contextId, context_ids.size(),
                                    context_ids.data(), context_values.data(),
-                                   count, uniqIds, values);
+                                   count, uniqIds, values, candidate_values);
   }
 }
 
@@ -498,9 +501,35 @@ void initialize() {
           Kokkos::Tuning::getNewVariableId();
       Kokkos::Tuning::kernel_type_context_variable_id =
           Kokkos::Tuning::getNewVariableId();
+
+      Kokkos::Tuning::SetOrRange kernel_type_variable_candidates;
+      kernel_type_variable_candidates.set.size = 4;
+
+      std::array<Kokkos::Tuning::VariableValue, 4> candidate_values = {
+          Kokkos::Tuning::make_variable_value(
+              Kokkos::Tuning::kernel_type_context_variable_id, "parallel_for"),
+          Kokkos::Tuning::make_variable_value(
+              Kokkos::Tuning::kernel_type_context_variable_id,
+              "parallel_reduce"),
+          Kokkos::Tuning::make_variable_value(
+              Kokkos::Tuning::kernel_type_context_variable_id, "parallel_scan"),
+          Kokkos::Tuning::make_variable_value(
+              Kokkos::Tuning::kernel_type_context_variable_id, "parallel_copy"),
+      };
+
+      kernel_type_variable_candidates.set.values = candidate_values.data();
+
+      Kokkos::Tuning::SetOrRange
+          kernel_name_candidates;  // TODO DZP: an empty set in SetOrRange if
+                                   // things are unbounded? Maybe an empty
+                                   // struct in the union just for
+                                   // clarification? Or unify the tag and the
+                                   // data
+      kernel_name_candidates.set.size = 0;
+
       Kokkos::Tuning::declareContextVariable(
           "kokkos.kernel_name", Kokkos::Tuning::kernel_name_context_variable_id,
-          kernel_name);
+          kernel_name, kernel_name_candidates);
 
       Kokkos::Tuning::VariableInfo kernel_type;
       kernel_type.type = Kokkos::Tuning::ValueType::kokkos_value_text;
@@ -511,7 +540,7 @@ void initialize() {
 
       Kokkos::Tuning::declareContextVariable(
           "kokkos.kernel_type", Kokkos::Tuning::kernel_type_context_variable_id,
-          kernel_type);
+          kernel_type, kernel_type_variable_candidates);
     }
   }
 

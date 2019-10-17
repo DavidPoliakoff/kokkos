@@ -94,7 +94,8 @@ void declareTuningVariable(const std::string& variableName, size_t uniqID,
                            VariableInfo info);
 
 void declareContextVariable(const std::string& variableName, size_t uniqID,
-                            VariableInfo info);
+                            VariableInfo info,
+                            Kokkos::Tuning::SetOrRange candidate_values);
 
 void declareContextVariableValues(size_t contextId, size_t count,
                                   size_t* uniqIds, VariableValue* values);
@@ -102,7 +103,8 @@ void declareContextVariableValues(size_t contextId, size_t count,
 void endContext(size_t contextId);
 
 void requestTuningVariableValues(size_t contextId, size_t count,
-                                 size_t* uniqIds, VariableValue* values);
+                                 size_t* uniqIds, VariableValue* values,
+                                 Kokkos::Tuning::SetOrRange* candidate_values);
 
 bool haveTuningTool();
 
