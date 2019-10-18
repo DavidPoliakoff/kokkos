@@ -431,18 +431,18 @@ void CudaInternal::initialize(int cuda_device_id, cudaStream_t stream) {
 #ifdef KOKKOS_ENABLE_TUNING
     {
       size_t blockSizeVariableId = getBlockSizeVariableId();
-      all_block_sizes = {
-        Kokkos::Tuning::make_variable_value(blockSizeVariableId, 1 << 5), // 32
-        Kokkos::Tuning::make_variable_value(blockSizeVariableId, 1 << 6),
-        Kokkos::Tuning::make_variable_value(blockSizeVariableId, 1 << 7),
-        Kokkos::Tuning::make_variable_value(blockSizeVariableId, 1 << 8),
-        Kokkos::Tuning::make_variable_value(blockSizeVariableId, 1 << 9),
-        Kokkos::Tuning::make_variable_value(blockSizeVariableId, 1 << 10),
-        Kokkos::Tuning::make_variable_value(blockSizeVariableId, 1 << 11),
-        Kokkos::Tuning::make_variable_value(blockSizeVariableId, 1 << 12),
-        Kokkos::Tuning::make_variable_value(blockSizeVariableId, 1 << 13),
-        Kokkos::Tuning::make_variable_value(blockSizeVariableId, 1 << 14)
-      };
+      all_block_sizes            = {
+          Kokkos::Tuning::make_variable_value(blockSizeVariableId,
+                                              1 << 5),  // 32
+          Kokkos::Tuning::make_variable_value(blockSizeVariableId, 1 << 6),
+          Kokkos::Tuning::make_variable_value(blockSizeVariableId, 1 << 7),
+          Kokkos::Tuning::make_variable_value(blockSizeVariableId, 1 << 8),
+          Kokkos::Tuning::make_variable_value(blockSizeVariableId, 1 << 9),
+          Kokkos::Tuning::make_variable_value(blockSizeVariableId, 1 << 10),
+          Kokkos::Tuning::make_variable_value(blockSizeVariableId, 1 << 11),
+          Kokkos::Tuning::make_variable_value(blockSizeVariableId, 1 << 12),
+          Kokkos::Tuning::make_variable_value(blockSizeVariableId, 1 << 13),
+          Kokkos::Tuning::make_variable_value(blockSizeVariableId, 1 << 14)};
     }
 #endif
   } else {

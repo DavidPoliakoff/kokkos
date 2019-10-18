@@ -504,7 +504,8 @@ void initialize() {
 
       Kokkos::Tuning::SetOrRange kernel_type_variable_candidates;
       kernel_type_variable_candidates.set.size = 4;
-      kernel_type_variable_candidates.set.id =   Kokkos::Tuning::kernel_type_context_variable_id;
+      kernel_type_variable_candidates.set.id =
+          Kokkos::Tuning::kernel_type_context_variable_id;
 
       std::array<Kokkos::Tuning::VariableValue, 4> candidate_values = {
           Kokkos::Tuning::make_variable_value(
@@ -527,7 +528,8 @@ void initialize() {
                                    // clarification? Or unify the tag and the
                                    // data
       kernel_name_candidates.set.size = 0;
-      kernel_name_candidates.set.id = Kokkos::Tuning::kernel_name_context_variable_id;
+      kernel_name_candidates.set.id =
+          Kokkos::Tuning::kernel_name_context_variable_id;
 
       Kokkos::Tuning::declareContextVariable(
           "kokkos.kernel_name", Kokkos::Tuning::kernel_name_context_variable_id,

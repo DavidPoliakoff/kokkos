@@ -359,21 +359,20 @@ struct CudaGetMaxBlockSize<
   }
 };
 
-
 template <class DriverType, class LaunchBounds, bool Large>
 struct CudaGetOptBlockSize;
 
 namespace utility {
-  size_t log2(size_t in){
-    KOKKOS_ASSERT(in!=0);
-    int highest_bit = 0;
-    while(in>0){
-      highest_bit += 1;
-      in >>= 1;
-    } 
-    return highest_bit;
+size_t log2(size_t in) {
+  KOKKOS_ASSERT(in != 0);
+  int highest_bit = 0;
+  while (in > 0) {
+    highest_bit += 1;
+    in >>= 1;
   }
+  return highest_bit;
 }
+}  // namespace utility
 
 template <class DriverType, class LaunchBounds>
 int cuda_get_opt_block_size(const typename DriverType::functor_type& f,
@@ -396,14 +395,19 @@ int cuda_get_opt_block_size(const typename DriverType::functor_type& f,
     // requested to provide
     size_t variableIds[] = {getBlockSizeVariableId()};
 
-    // To figure out what the valid block sizes are, we count the powers of 2 between the suggested block size and our minimum block size
-    size_t num_valid_block_sizes = utility::log2(kokkos_suggested_block_size) - utility::log2(Kokkos::Impl::all_block_sizes[0].value.int_value); // TODO DZP: check this thoroughly
+    // To figure out what the valid block sizes are, we count the powers of 2
+    // between the suggested block size and our minimum block size
+    size_t num_valid_block_sizes =
+        utility::log2(kokkos_suggested_block_size) -
+        utility::log2(Kokkos::Impl::all_block_sizes[0]
+                          .value.int_value);  // TODO DZP: check this thoroughly
     Kokkos::Tuning::SetOrRange candidate_values;
-    candidate_values.set.id = getBlockSizeVariableId();
-    candidate_values.set.size = num_valid_block_sizes;
+    candidate_values.set.id     = getBlockSizeVariableId();
+    candidate_values.set.size   = num_valid_block_sizes;
     candidate_values.set.values = Kokkos::Impl::all_block_sizes.data();
     Kokkos::Tuning::requestTuningVariableValues(
-        Kokkos::Tuning::getCurrentContextId(), 1, variableIds, default_values, &candidate_values);
+        Kokkos::Tuning::getCurrentContextId(), 1, variableIds, default_values,
+        &candidate_values);
     kokkos_suggested_block_size = default_values[0].value.int_value;
   }
 #endif
@@ -479,19 +483,21 @@ int cuda_get_opt_block_size(const CudaInternal* cuda_instance,
   kokkos_suggested_block_size = opt_block_size;
 #ifdef KOKKOS_ENABLE_TUNING
   if (Kokkos::Tuning::haveTuningTool()) {
-
     size_t block_size_id                           = getBlockSizeVariableId();
     Kokkos::Tuning::VariableValue default_values[] = {
         Kokkos::Tuning::make_variable_value(block_size_id,
                                             kokkos_suggested_block_size)};
-    size_t variableIds[] = {block_size_id};
+    size_t variableIds[]        = {block_size_id};
     const size_t max_block_size = attr.maxThreadsPerBlock;
     Kokkos::Tuning::SetOrRange candidate_values;
     candidate_values.set.id = getBlockSizeVariableId();
-    candidate_values.set.size = utility::log2(max_block_size) - utility::log2(Kokkos::Impl::all_block_sizes[0].value.int_value);
+    candidate_values.set.size =
+        utility::log2(max_block_size) -
+        utility::log2(Kokkos::Impl::all_block_sizes[0].value.int_value);
     candidate_values.set.values = Kokkos::Impl::all_block_sizes.data();
     Kokkos::Tuning::requestTuningVariableValues(
-        Kokkos::Tuning::getCurrentContextId(), 1, variableIds, default_values, &candidate_values);
+        Kokkos::Tuning::getCurrentContextId(), 1, variableIds, default_values,
+        &candidate_values);
     kokkos_suggested_block_size = default_values[0].value.int_value;
   }
 #endif
