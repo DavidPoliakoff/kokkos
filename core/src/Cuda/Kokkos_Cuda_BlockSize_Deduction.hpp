@@ -65,22 +65,7 @@ int cuda_get_max_block_size(const typename DriverType::functor_type& f,
       f, vector_length, shmem_extra_block, shmem_extra_thread);
 }
 
-static size_t getBlockSizeVariableId() {
-  static size_t id = 0;
-  if (id == 0) {
-    Kokkos::Tuning::VariableInfo block_size;
-    id = Kokkos::Tuning::getNewVariableId();
-
-    block_size.type = Kokkos::Tuning::ValueType::kokkos_value_integer;
-    block_size.category =
-        Kokkos::Tuning::StatisticalCategory::kokkos_value_ratio;
-    block_size.valueQuantity =
-        Kokkos::Tuning::CandidateValueType::kokkos_value_set;
-    Kokkos::Tuning::declareTuningVariable("kokkos.cuda.block_size", id,
-                                          block_size);
-  }
-  return id;
-}
+size_t getBlockSizeVariableId();
 
 template <class FunctorType, class LaunchBounds>
 int cuda_get_max_block_size(const CudaInternal* cuda_instance,
@@ -362,18 +347,9 @@ struct CudaGetMaxBlockSize<
 template <class DriverType, class LaunchBounds, bool Large>
 struct CudaGetOptBlockSize;
 
-namespace utility {
-size_t log2(size_t in) {
-  KOKKOS_ASSERT(in != 0);
-  int highest_bit = 0;
-  while (in > 0) {
-    highest_bit += 1;
-    in >>= 1;
-  }
-  return highest_bit;
+namespace utility {  // TODO DZP: reorganize
+size_t log2(size_t in);
 }
-}  // namespace utility
-
 template <class DriverType, class LaunchBounds>
 int cuda_get_opt_block_size(const typename DriverType::functor_type& f,
                             const size_t vector_length,

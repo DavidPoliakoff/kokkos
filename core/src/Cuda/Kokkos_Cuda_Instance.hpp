@@ -8,7 +8,7 @@ namespace Kokkos {
 namespace Impl {
 
 #ifdef KOKKOS_ENABLE_TUNING
-std::vector<Kokkos::Tuning::VariableValue> all_block_sizes;
+extern std::vector<Kokkos::Tuning::VariableValue> all_block_sizes;
 #endif
 
 struct CudaTraits {
