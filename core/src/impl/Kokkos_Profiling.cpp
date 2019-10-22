@@ -323,7 +323,7 @@ void declareContextVariableValues(size_t contextId, size_t count,
     features_per_context[contextId].insert(uniqIds, uniqIds + count);
   }
   active_features.insert(uniqIds, uniqIds + count);
-  for (int x = 0; x < count; ++x) {
+  for (size_t x = 0; x < count; ++x) {
     feature_values[uniqIds[x]] = values[x];
   }
 }
