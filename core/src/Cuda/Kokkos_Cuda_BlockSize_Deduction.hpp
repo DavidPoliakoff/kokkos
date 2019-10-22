@@ -365,11 +365,11 @@ int cuda_get_opt_block_size(const typename DriverType::functor_type& f,
   if (Kokkos::Tuning::haveTuningTool()) {
     size_t block_size_id                           = getBlockSizeVariableId();
     Kokkos::Tuning::VariableValue default_values[] = {
-        Kokkos::Tuning::make_variable_value(getBlockSizeVariableId(),
+        Kokkos::Tuning::make_variable_value(block_size_id,
                                             kokkos_suggested_block_size)};
     // the variableIds are the unique ID's for the variables a tool is being
     // requested to provide
-    size_t variableIds[] = {getBlockSizeVariableId()};
+    size_t variableIds[] = {block_size_id};
 
     // To figure out what the valid block sizes are, we count the powers of 2
     // between the suggested block size and our minimum block size
@@ -378,7 +378,7 @@ int cuda_get_opt_block_size(const typename DriverType::functor_type& f,
         utility::log2(Kokkos::Impl::all_block_sizes[0]
                           .value.int_value);  // TODO DZP: check this thoroughly
     Kokkos::Tuning::SetOrRange candidate_values;
-    candidate_values.set.id     = getBlockSizeVariableId();
+    candidate_values.set.id     = block_size_id;
     candidate_values.set.size   = num_valid_block_sizes;
     candidate_values.set.values = Kokkos::Impl::all_block_sizes.data();
     Kokkos::Tuning::requestTuningVariableValues(
