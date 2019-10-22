@@ -427,69 +427,65 @@ void initialize() {
       // pointer to function A direct cast will give warnings hence, we have to
       // workaround the issue by casting pointer to pointers.
       auto p1 = dlsym(firstProfileLibrary, "kokkosp_begin_parallel_for");
-      beginForCallback = reinterpret_cast<beginFunction>(p1);
+      beginForCallback = *((beginFunction*)&p1);
       auto p2 = dlsym(firstProfileLibrary, "kokkosp_begin_parallel_scan");
-      beginScanCallback = reinterpret_cast<beginFunction>(p2);
+      beginScanCallback = *((beginFunction*)&p2);
       auto p3 = dlsym(firstProfileLibrary, "kokkosp_begin_parallel_reduce");
-      beginReduceCallback = reinterpret_cast<beginFunction>(p3);
+      beginReduceCallback = *((beginFunction*)&p3);
 
       auto p4         = dlsym(firstProfileLibrary, "kokkosp_end_parallel_scan");
-      endScanCallback = reinterpret_cast<endFunction>(p4);
+      endScanCallback = *((endFunction*)&p4);
       auto p5         = dlsym(firstProfileLibrary, "kokkosp_end_parallel_for");
-      endForCallback  = reinterpret_cast<endFunction>(p5);
+      endForCallback  = *((endFunction*)&p5);
       auto p6 = dlsym(firstProfileLibrary, "kokkosp_end_parallel_reduce");
-      endReduceCallback = reinterpret_cast<endFunction>(p6);
+      endReduceCallback = *((endFunction*)&p6);
 
       auto p7            = dlsym(firstProfileLibrary, "kokkosp_init_library");
-      initProfileLibrary = reinterpret_cast<initFunction>(p7);
+      initProfileLibrary = *((initFunction*)&p7);
       auto p8 = dlsym(firstProfileLibrary, "kokkosp_finalize_library");
-      finalizeProfileLibrary = reinterpret_cast<finalizeFunction>(p8);
+      finalizeProfileLibrary = *((finalizeFunction*)&p8);
 
       auto p9 = dlsym(firstProfileLibrary, "kokkosp_push_profile_region");
-      pushRegionCallback = reinterpret_cast<pushFunction>(p9);
+      pushRegionCallback = *((pushFunction*)&p9);
       auto p10 = dlsym(firstProfileLibrary, "kokkosp_pop_profile_region");
-      popRegionCallback = reinterpret_cast<popFunction>(p10);
+      popRegionCallback = *((popFunction*)&p10);
 
       auto p11 = dlsym(firstProfileLibrary, "kokkosp_allocate_data");
-      allocateDataCallback = reinterpret_cast<allocateDataFunction>(p11);
+      allocateDataCallback = *((allocateDataFunction*)&p11);
       auto p12 = dlsym(firstProfileLibrary, "kokkosp_deallocate_data");
-      deallocateDataCallback = reinterpret_cast<deallocateDataFunction>(p12);
+      deallocateDataCallback = *((deallocateDataFunction*)&p12);
 
       auto p13 = dlsym(firstProfileLibrary, "kokkosp_begin_deep_copy");
-      beginDeepCopyCallback = reinterpret_cast<beginDeepCopyFunction>(p13);
+      beginDeepCopyCallback = *((beginDeepCopyFunction*)&p13);
       auto p14            = dlsym(firstProfileLibrary, "kokkosp_end_deep_copy");
-      endDeepCopyCallback = reinterpret_cast<endDeepCopyFunction>(p14);
+      endDeepCopyCallback = *((endDeepCopyFunction*)&p14);
 
       auto p15 = dlsym(firstProfileLibrary, "kokkosp_create_profile_section");
-      createSectionCallback =
-          reinterpret_cast<createProfileSectionFunction>(p15);
+      createSectionCallback = *((createProfileSectionFunction*)&p15);
       auto p16 = dlsym(firstProfileLibrary, "kokkosp_start_profile_section");
-      startSectionCallback = reinterpret_cast<startProfileSectionFunction>(p16);
+      startSectionCallback = *((startProfileSectionFunction*)&p16);
       auto p17 = dlsym(firstProfileLibrary, "kokkosp_stop_profile_section");
-      stopSectionCallback = reinterpret_cast<stopProfileSectionFunction>(p17);
+      stopSectionCallback = *((stopProfileSectionFunction*)&p17);
       auto p18 = dlsym(firstProfileLibrary, "kokkosp_destroy_profile_section");
-      destroySectionCallback =
-          reinterpret_cast<destroyProfileSectionFunction>(p18);
+      destroySectionCallback = *((destroyProfileSectionFunction*)&p18);
 
       auto p19 = dlsym(firstProfileLibrary, "kokkosp_profile_event");
-      profileEventCallback = reinterpret_cast<profileEventFunction>(p19);
+      profileEventCallback = *((profileEventFunction*)&p19);
 
       // TODO DZP: move to its own section
       auto p20 = dlsym(firstProfileLibrary, "kokkosp_declare_tuning_variable");
       Kokkos::Tuning::tuningVariableDeclarationCallback =
-          reinterpret_cast<Kokkos::Tuning::tuningVariableDeclarationFunction>(
-              p20);
+          *((Kokkos::Tuning::tuningVariableDeclarationFunction*)&p20);
       auto p21 = dlsym(firstProfileLibrary, "kokkosp_declare_context_variable");
       Kokkos::Tuning::contextVariableDeclarationCallback =
-          reinterpret_cast<Kokkos::Tuning::contextVariableDeclarationFunction>(
-              p21);
+          *((Kokkos::Tuning::contextVariableDeclarationFunction*)&p21);
       auto p22 =
           dlsym(firstProfileLibrary, "kokkosp_request_tuning_variable_values");
       Kokkos::Tuning::tuningVariableValueCallback =
-          reinterpret_cast<Kokkos::Tuning::tuningVariableValueFunction>(p22);
+          *((Kokkos::Tuning::tuningVariableValueFunction*)&p22);
       auto p23 = dlsym(firstProfileLibrary, "kokkosp_end_context");
       Kokkos::Tuning::contextEndCallback =
-          reinterpret_cast<Kokkos::Tuning::contextEndFunction>(p23);
+          *((Kokkos::Tuning::contextEndFunction*)&p23);
 
       Kokkos::Tuning::VariableInfo kernel_name;
       kernel_name.type = Kokkos::Tuning::ValueType::kokkos_value_text;
