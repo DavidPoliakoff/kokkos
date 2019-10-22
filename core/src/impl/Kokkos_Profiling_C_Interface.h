@@ -62,17 +62,7 @@ struct Kokkos_Profiling_SpaceHandle {
   const char* name;
 };
 
-union Kokkos_Tuning_VariableValue_ValueUnion {
-  bool bool_value;
-  int int_value;
-  double double_value;
-  const char* string_value;
-};
-
-struct Kokkos_Tuning_VariableValue {
-  size_t id;
-  union Kokkos_Tuning_VariableValue_ValueUnion value;
-};
+struct Kokkos_Tuning_VariableValue;  // forward declaration
 
 struct Kokkos_Tuning_ValueSet {
   size_t id;
@@ -82,18 +72,42 @@ struct Kokkos_Tuning_ValueSet {
 
 struct Kokkos_Tuning_ValueRange {
   size_t id;
-  Kokkos_Tuning_VariableValue lower;
-  Kokkos_Tuning_VariableValue upper;
+  Kokkos_Tuning_VariableValue*
+      lower;  // pointer because I'm used in Kokkos_VariableValue_ValueUnion,
+              // defined below
+  Kokkos_Tuning_VariableValue* upper;
+  Kokkos_Tuning_VariableValue* step;
   bool openLower;
   bool openUpper;
 };
 
+union Kokkos_Tuning_VariableValue_ValueUnion {
+  bool bool_value;
+  int int_value;
+  double double_value;
+  const char* string_value;
+  Kokkos_Tuning_ValueRange range_value;
+  Kokkos_Tuning_ValueSet set_value;
+};
+
+struct Kokkos_Tuning_VariableValue {
+  size_t id;
+  union Kokkos_Tuning_VariableValue_ValueUnion value;
+};
+
 enum Kokkos_Tuning_VariableInfo_ValueType {
   kokkos_value_floating_point,  // TODO DZP: single and double? One or the
-                                // other?
   kokkos_value_integer,
   kokkos_value_text,
-  kokkos_value_boolean
+  kokkos_value_boolean,
+  kokkos_value_floating_point_tuple,
+  kokkos_value_integer_tuple,
+  kokkos_value_text_tuple,
+  kokkos_value_boolean_tuple,
+  kokkos_value_floating_point_range,  // TODO DZP: prove to myself that a
+                                      // boolean or text range is stupid and
+                                      // shouldn't exist
+  kokkos_value_integer_range,
 };
 
 enum Kokkos_Tuning_VariableInfo_StatisticalCategory {
