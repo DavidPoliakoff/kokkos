@@ -662,19 +662,22 @@ void finalize() {}
 }  // namespace Profiling
 
 namespace Tuning {
-void declareTuningVariable(const std::string& variableName, int uniqID,
+void declareTuningVariable(const std::string& variableName, size_t uniqID,
                            VariableInfo info) {}
 
-void declareContextVariable(const std::string& variableName, int uniqID,
-                            VariableInfo info) {}
+void declareContextVariable(const std::string& variableName, size_t uniqID,
+                            VariableInfo info,
+                            Kokkos::Tuning::SetOrRange candidate_values) {}
 
-void declareContextVariableValues(int contextId, int count, int* uniqIds,
-                                  VariableValue* values) {}
+void declareContextVariableValues(size_t contextId, size_t count,
+                                  size_t* uniqIds, VariableValue* values) {}
 
-void endContext(int contextId) {}
+void endContext(size_t contextId) {}
 
-void requestTuningVariableValues(int count, int* uniqIds,
-                                 VariableValue* values);
+void requestTuningVariableValues(size_t contextId, size_t count,
+                                 size_t* uniqIds, VariableValue* values,
+                                 Kokkos::Tuning::SetOrRange* candidate_values) {
+}
 size_t getNewContextId() { return 0; }
 size_t getCurrentContextId() { return 0; }
 size_t getNewVariableId() { return 0; }
