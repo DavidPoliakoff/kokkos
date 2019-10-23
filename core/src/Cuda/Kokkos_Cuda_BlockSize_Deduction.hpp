@@ -347,9 +347,6 @@ struct CudaGetMaxBlockSize<
 template <class DriverType, class LaunchBounds, bool Large>
 struct CudaGetOptBlockSize;
 
-namespace utility {  // TODO DZP: reorganize
-size_t log2(size_t in);
-}
 template <class DriverType, class LaunchBounds>
 int cuda_get_opt_block_size(const typename DriverType::functor_type& f,
                             const size_t vector_length,
