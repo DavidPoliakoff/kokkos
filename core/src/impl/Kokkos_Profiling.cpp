@@ -46,7 +46,6 @@
 #include <vector>
 #include <array>
 #if defined(KOKKOS_ENABLE_PROFILING)
-#define KOKKOS_ENABLE_TUNING  // TODO DZP: make this a build system option
 #include <impl/Kokkos_Profiling.hpp>
 #include <cstring>
 #include <unordered_map>

@@ -55,8 +55,7 @@
 #include <impl/Kokkos_Profiling_DeviceInfo.hpp>
 #include <impl/Kokkos_Profiling_C_Interface.h>
 #include <impl/Kokkos_Profiling_C_Interface.h>
-#define KOKKOS_ENABLE_TUNING  // TODO DZP: this needs to be a proper build
-                              // system option
+
 namespace Kokkos {
 namespace Profiling {
 
