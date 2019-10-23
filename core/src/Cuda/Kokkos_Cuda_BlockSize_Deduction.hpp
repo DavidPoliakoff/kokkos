@@ -373,7 +373,7 @@ int cuda_get_opt_block_size(const typename DriverType::functor_type& f,
     size_t num_valid_block_sizes =
         utility::log2(kokkos_suggested_block_size) -
         utility::log2(Kokkos::Impl::all_block_sizes[0]
-                          .value.int_value);  // TODO DZP: check this thoroughly
+                          .value.int_value);
     Kokkos::Tuning::SetOrRange candidate_values;
     candidate_values.set.id     = block_size_id;
     candidate_values.set.size   = num_valid_block_sizes;
