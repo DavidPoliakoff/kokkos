@@ -94,7 +94,7 @@ size_t getBlockSizeVariableId() {
   }
   return id;
 }
-namespace utility {  // TODO DZP: reorganize
+namespace utility { 
 size_t log2(size_t in) {
   KOKKOS_ASSERT(in != 0);
   int highest_bit = 0;

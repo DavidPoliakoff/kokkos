@@ -156,7 +156,7 @@ class CudaInternal {
   size_type* scratch_unified(const size_type size) const;
   size_type* scratch_functor(const size_type size) const;
 };
-namespace utility {  // TODO DZP: reorganize
+namespace utility { 
 size_t log2(size_t in);
 }
 
