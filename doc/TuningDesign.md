@@ -46,6 +46,8 @@ a tool can do is try all possible values for a tuning value. If they're ordered 
 using the concept of a directional search. If the distances between elements matter (interval data) you can cheat with things like
 bisection. Finally if ratios matter you can play games where you increase by a factor of 10 in your searches.
 
+In describing the candidate values in (3), users have two options: sets or ranges. A set has a number of entries of the given type, a range has lower and upper bounds and a step size.
+
 Claim: the combination of context, candidates, semantics, and types gives a tool enough to intelligently explore the search space of 
 tuning parameters
 
@@ -55,4 +57,50 @@ Suppose a tool perfectly understands what a block size is. To effectively tune o
 
 In a trivial case, the tool knows absolutely nothing other than candidate values, and tries to make a choice that optimizes across all
 invocations of kernels. This isn't _that_ far from what Kokkos does now, so it's not unreasonable for this to produce decent results. 
-That said, we could quickly add some context from Kokkos
+That said, we could quickly add some context from Kokkos, stuff like the name and type of the kernel, the execution space, all with the semantic information described above [TODO: caveat one]. That way a tuning tool could differentiate based on all the information available to Kokkos. Going a little further, we could expose this ability to provide context to our applications. What if the tools wasn't just tuning to the fact that the kernel name was "GEMM", but that "matrix_size" was a million? Or that "live_particles" had a 
+certain value? The more (relevant) context we provide to a tool, the better it will be able to tune.
+
+
+### Intended Tool Workflow
+
+Okay, so a tool knows what it's tuning, and it knows the context of the application well enough to do clever ML things, all of this with happy semantic information so that everything make . What should a workflow look like? A tool should
+
+1) Listen to declarations about the semantics of context and tuning variables
+2) Make tuning decisions
+3) Measure their feedback
+4) Get better at (2)
+
+The easier we make this loop, the better
+
+## Design
+
+The design of this system is intended to reflect the above ideas with the minimal necessary additions to make the mechanics work. This section is almost entirely describing the small holes in the above descriptions. Variable declaration works exactly as described above, except for two things
+
+1) Each variable is associated with a unique ID at declaration time
+2) In addition to allowing "int, float, string" types, we also allow for sets and ranges of the same
+
+(2) is important because it allows us to express interdependency of tuning variables, you can't tune "blockSize.x" and "blockSize.y" independently, the choices intersect [caveat two: interdependent variables must have the same type]. So we wouldn't describe blockSize.x as being between 32 and MAX_BLOCK_SIZE, just like blockSize.y, we would describe "3D_block_size" as being in {1,1,1}, ... {MAX_BLOCK_SIZE,1,1}
+
+Any time a value of a variable is declared (context) or requested (tuning), it is also associated with a context ID that says how long that declaration is valid for. So if a user sees
+
+```
+declare_value("is_safe_to_push_button",true,contextId(0));
+foo();
+endContext(contextId(0));
+bar();
+```
+
+They should know in `bar` that it is no longer safe to push the button. Similarly, if the have provided tuning values to contextId(0), when contextId(0) ends, that is when they take measurements related to those tuning values and learn things. For many tools, the first time they see a value associated with a contextId, they'll do a starting measurement, and at endContext they'll stop that measurement.
+
+The ugliest divergence from design is in the semantics. We would absolutely love to tell users the valid values for a given tuning parameter at variable declaration time. We hate the idea of telling them the valid values on each request for the value of that parameter. Unfortunately the universe is cruel: things can happen outside of Kokkos that make the valid values of a tuning parameter change on each request. Just taking the example of block size
+
+1) Different kernels have different valid values for block size
+2) Different invocations of the same kernel can have different values for block size if somebody changes settings
+3) We don't know how much worse this gets as we move past block size
+
+So we'll do our best to mitigate the impacts of this, but for now the set of candidate values must be provided every time we request a
+value
+
+Otherwise the ideas behind the tuning system translate directly into the design and the implementation
+
+## Implementation
