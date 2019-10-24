@@ -104,3 +104,56 @@ value
 Otherwise the ideas behind the tuning system translate directly into the design and the implementation
 
 ## Implementation
+
+First, on the Kokkos side some changes had to happen. If you're writing a tool, skip to Tool Implementation
+
+### Kokkos implementation
+
+In the past, Kokkos and Kokkos-tools didn't share source code. Except for a "SpaceHandle" struct which users manually copied to their tools, nothing from Kokkos hit the tools repo, the interface consisted entirely of basic C types. If you read the ideas section, it translates to a lot of structs and enums. Despite my best efforts to minimize them, I think we now need to share some header files with kokkos-tools. Andrew Gaspar did really excellent work making this practical, we have
+
+1) Kokkos_Profiling_C_Interface.h , which is (shockingly) a C interface that everything in Kokkos tools boils down to
+2) Kokkos_Profiling_Interface.hpp, nice C++ wrappers around the C so that the C idioms don't hit Kokkos
+3) Kokkos_Profiling.[cpp/hpp], which contain things Kokkos needs to implement tooling, but the tools don't need to know about
+
+All of our function pointer initialization and all that mess now go into Kokkos_Profiling.[cpp/hpp], all the types are in the Interface files. The interface files will be shared with kokkos/kokkos-tools.
+
+In terms of build changes, we now install the above .h file, and have a KOKKOS_ENABLE_TUNING option that will be separable from KOKKOS_ENABLE_PROFILING
+
+### Tool implementation
+
+In the past, tools have responded to the [profiling hooks in Kokkos](https://github.com/kokkos/kokkos-tools/wiki/Profiling-Hooks). This effort adds to that, there are now a few more functions
+
+```
+void kokkosp_declare_tuning_variable(const char* name, const size_t id, Kokkos_Tuning_VariableInfo info);
+```
+
+Declares a tuning variable named `name` with uniqueId `id` and all the semantic information (except candidate values) stored in `info`.
+
+```
+void kokkosp_declare_context_variable(const char*, const size_t, Kokkos_Tuning_VariableInfo info, Kokkos_Tuning_VariableInfo_SetOrRange);
+```
+
+This is much like declaring a tuning variable, except the candidate values of context variables are declared immediately. In cases where they aren't known, `info.valueQuantity` will be set to `kokkos_value_unbounded`. This is fairly common, Kokkos can tell you that `kernel_name` is a string, but we can't tell you what strings a user might provide.
+
+```
+void kokkosp_request_tuning_variable_values(
+    const size_t contextId, 
+    const size_t numContextVariables, const size_t* contextVariableIds, const Kokkos_Tuning_VariableValue* contextVariableValues, 
+    const size_t numTuningVariables, const size_t* tuningVariableIds, Kokkos_Tuning_VariableValue* tuningVariableValues, Kokkos_Tuning_VariableInfo_SetOrRange* tuningVariableCandidateValues);
+```   
+
+Here Kokkos is requesting the values of tuning variables, and most of the meat is here. The contextId tells us the scope across which these variables were used. Often you'll start a measurement/timer and associate it with this ID so that when the contextID ends, you can stop the timer and know how you did.
+
+The next three arguments describe the context you're tuning in. You have the number of context variables, an array of that size containing their ID's, and an array containing their values.
+
+The next four arguments describe the Tuning Variables, first the number, then the Id's, then some default values which you overwrite to change how Kokkos will behave. Finally, you have the candidate values you can choose among.
+
+Critically, as tuningVariableValues comes preloaded with default values, if your function body is `return;` you will not crash Kokkos, only make us use our defaults. If you don't know, you are allowed to punt and let Kokkos do what it would.
+
+[TODO DZP: now that a VariableValue conatins the uniqueId, passing the Id arrays isn't necessary]
+
+```
+void kokkosp_end_context(const size_t contextId);
+```
+
+This simply says that the contextId in the argument is now over. If you provided tuning values associated with that context, those values can now be associated with a result.
