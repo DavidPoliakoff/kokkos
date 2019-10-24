@@ -7,7 +7,7 @@ This is a design document describing the motivation, ideas, design, and prototyp
 Currently, Kokkos makes a lot of decisions about tuning parameters (CUDA block sizes, different kernel implementations) 
 by picking an option that results in the best performance for the widest array of applications and architectures at the 
 time the choice is made. This approach leaves performance on the table, and appears increasingly untenable as the number 
-of architectures and applications grows.
+of architectures and applications grows, and as software versions change.
 
 The Kokkos team would like to instead open up the ability to set the parameters as part of the tooling system so that
 these parameters can be tuned for individual applications across all the architectures they might run on. In order to match the
