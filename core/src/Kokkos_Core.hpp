@@ -49,6 +49,7 @@
 // Include the execution space header files for the enabled execution spaces.
 
 #include <Kokkos_Core_fwd.hpp>
+#include <Kokkos_LogicalSpaces.hpp>
 
 #if defined(KOKKOS_ENABLE_SERIAL)
 #include <Kokkos_Serial.hpp>
