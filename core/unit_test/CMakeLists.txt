@@ -414,6 +414,11 @@ KOKKOS_ADD_ADVANCED_TEST( UnitTest_PushFinalizeHook_terminate
         tools/TestTuning.cpp
     )
   endif()
+    KOKKOS_ADD_EXECUTABLE_AND_TEST(
+	    UnitTest_LogicalSpaces
+      SOURCES
+      tools/TestLogicalSpaces.cpp
+    )
   if(KOKKOS_ENABLE_LIBDL)
 
     add_library(
@@ -427,6 +432,7 @@ KOKKOS_ADD_ADVANCED_TEST( UnitTest_PushFinalizeHook_terminate
       ProfilingAllCalls
       tools/TestAllCalls.cpp
     )
+
 
     set(ADDRESS_REGEX "0x[0-9a-f]*")
     set(MEMSPACE_REGEX "[HC][ou][sd][ta][a-zA-Z]*")
