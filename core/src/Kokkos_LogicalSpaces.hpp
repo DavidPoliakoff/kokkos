@@ -8,7 +8,7 @@
 namespace Kokkos {
 
 class DefaultNamer {
-  static constexpr const char* get_name() { return "DEFAULT"; }
+  static constexpr const char* get_name() { return "DefaultLogicalExecutionSpaceName"; }
 };
 
 struct EmptyModifier {
