@@ -60,24 +60,30 @@ struct MEpilogue {
 int main() {
   Kokkos::initialize();
   {
-    Kokkos::Tools::Experimental::set_allocate_data_callback([](const Kokkos::Tools::SpaceHandle hand, const char* name, const void* const ptr, const size_t size){
-      std::cout << hand.name << ", ["<<name<<","<<ptr<<"]"<< std::endl;
-		    });
+    Kokkos::Tools::Experimental::set_allocate_data_callback(
+        [](const Kokkos::Tools::SpaceHandle hand, const char* name,
+           const void* const ptr, const size_t size) {
+          std::cout << hand.name << ", [" << name << "," << ptr << "] "
+                    << size << std::endl;
+        });
     using fake_exec_space = Kokkos::LogicalExecutionSpace<Kokkos::Serial, void>;
-    using multi_fake_exec_space = Kokkos::LogicalExecutionSpace<fake_exec_space>;
+    using multi_fake_exec_space =
+        Kokkos::LogicalExecutionSpace<fake_exec_space>;
     using fake_memory_space =
         Kokkos::LogicalMemorySpace<Kokkos::HostSpace, fake_exec_space,
                                    Kokkos::DefaultMemorySpaceNamer, true>;
-    using multi_fake_memory_space = Kokkos::LogicalMemorySpace<fake_memory_space>;
-    using ofs = Kokkos::LogicalMemorySpace<Kokkos::HostSpace, Kokkos::Serial, Kokkos::DefaultMemorySpaceNamer, false>;
+    using multi_fake_memory_space =
+        Kokkos::LogicalMemorySpace<fake_memory_space>;
+    using ofs =
+        Kokkos::LogicalMemorySpace<Kokkos::HostSpace, Kokkos::Serial,
+                                   Kokkos::DefaultMemorySpaceNamer, false>;
     Kokkos::View<double*, fake_memory_space> pup_view("pup_view", 1000);
-    Kokkos::View<double*, multi_fake_memory_space> oopup_view("oopup_view",1000);
-    Kokkos::View<double*, Kokkos::HostSpace> opup_view("opup_view",1000);
-std::cout << "================================="<<std::endl;
-    Kokkos::DualView<double*,ofs> pup_dual_vew("pup_dv",1000);
-std::cout << "================================="<<std::endl;
-    std::cout << pup_dual_vew.h_view.data()<<std::endl;
-    std::cout << pup_dual_vew.d_view.data()<<std::endl;
+    Kokkos::View<double*, Kokkos::HostSpace> opup_view("opup_view", 1000);
+    std::cout << "=================================" << std::endl;
+    Kokkos::DualView<double*, ofs> pup_dual_vew("pup_dv", 1000);
+    std::cout << "=================================" << std::endl;
+    std::cout << pup_dual_vew.h_view.data() << std::endl;
+    std::cout << pup_dual_vew.d_view.data() << std::endl;
     deep_copy(pup_view, opup_view);
     deep_copy(opup_view, pup_view);
     deep_copy(pup_view, pup_view);
