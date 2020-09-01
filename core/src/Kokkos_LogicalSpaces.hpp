@@ -11,7 +11,7 @@ class DefaultNamer {
   static constexpr const char* get_name() { return "DEFAULT"; }
 };
 
-class EmptyModifier {
+struct EmptyModifier {
   static void exec(){};
 };
 
@@ -27,7 +27,7 @@ class LogicalExecutionSpace {
   //@{
 
   //! Tag this class as an execution space:
-  using execution_space = LogicalExecutionSpace<BaseSpace>;
+  using execution_space = LogicalExecutionSpace<BaseSpace, PreferredMemorySpace, Namer, Prologue, Epilogue>;
   //! The size_type alias best suited for this device.
   using size_type = typename BaseSpace::size_type;
   //! This device's preferred memory space.
@@ -162,8 +162,8 @@ class ParallelScanWithTotal<FunctorType, SpecifiedPolicy<PolicyTraits...>, Retur
 }// Impl
 namespace Tools {
 	namespace Experimental {
-template <class BaseSpace>
-struct DeviceTypeTraits<Kokkos::LogicalExecutionSpace<BaseSpace>> {
+template <class BaseSpace, class... SpaceTraits>
+struct DeviceTypeTraits<Kokkos::LogicalExecutionSpace<BaseSpace,SpaceTraits...>> {
   static constexpr DeviceType id = DeviceType::Logical;
 };
   

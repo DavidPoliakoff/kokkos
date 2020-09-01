@@ -50,12 +50,15 @@
 #include <Kokkos_Core.hpp>
 #include <Kokkos_LogicalSpaces.hpp>
 
-class Prologue {
-	static void exec() { std::cout << "Before."<<std::endl;}
+struct MPrologue {
+	static void exec() {};
 	};
-class Epilogue {
-	static void exec() { std::cout << "After."<<std::endl;}
+struct MEpilogue {
+	static void exec() {};
 	};
+  struct NewEmptyModifier {
+    static void exec(){};
+  };
 int main() {
   Kokkos::initialize();
   {
@@ -91,16 +94,6 @@ int main() {
     Kokkos::Profiling::stopSection(sectionId);
     Kokkos::Profiling::destroyProfileSection(sectionId);
     Kokkos::Profiling::markEvent("profiling_event");
-    using fake_space = Kokkos::LogicalExecutionSpace<Kokkos::Serial, void, Kokkos::DefaultNamer, Prologue, Epilogue>;
-    double dubs;
-    Kokkos::View<double*, Kokkos::HostSpace> view_pup("pups",1000);
-    Kokkos::parallel_for("dogs",Kokkos::RangePolicy<fake_space>(0,1000), KOKKOS_LAMBDA(const int i) {});
-    /**
-    Kokkos::parallel_reduce("dogrs",Kokkos::RangePolicy<fake_space>(0,1000), KOKKOS_LAMBDA(const int i, double& sum) {
-      sum+=i;
-		    }, dubs);
-     Kokkos::parallel_scan("dogsss", Kokkos::RangePolicy<fake_space>(0,1000), KOKKOS_LAMBDA(const int i, double& sum, bool final){ sum+= i; }, dubs);
-  } */
-  Kokkos::finalize();
 }
+  Kokkos::finalize();
 }
