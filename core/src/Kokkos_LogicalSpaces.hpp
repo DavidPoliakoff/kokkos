@@ -11,10 +11,16 @@ class DefaultNamer {
   static constexpr const char* get_name() { return "DEFAULT"; }
 };
 
-template<class BaseSpace, class PreferredMemorySpace = void, class Namer = DefaultNamer>
+class EmptyModifier {
+  static void exec(){};
+};
+
+template<class BaseSpace, class PreferredMemorySpace = void, class Namer = DefaultNamer, class Prologue = EmptyModifier, class Epilogue = EmptyModifier>
 class LogicalExecutionSpace {
  BaseSpace space;
  public:
+   using pre = Prologue;
+   using post = Epilogue;
    template<typename... Args>
    LogicalExecutionSpace(Args... args) : space(args...) {};
   //! \name Type declarations that all Kokkos devices must provide.
@@ -93,12 +99,15 @@ namespace Impl {
 
 template<class BaseSpace, class FunctorType, template<class...> class SpecifiedPolicy,class... PolicyTraits, class... SpaceTraits>
 class ParallelFor<FunctorType, SpecifiedPolicy<PolicyTraits...>, LogicalExecutionSpace<BaseSpace, SpaceTraits...>> {
+  using LogicalSpace = LogicalExecutionSpace<BaseSpace, SpaceTraits...>;
   using Policy = SpecifiedPolicy<PolicyTraits...>;
   using real_runner = ParallelFor<FunctorType, Policy, BaseSpace>;
   real_runner runner;
   public:
   inline void execute() const {
+    LogicalSpace::pre::exec();
     runner.execute();
+    LogicalSpace::post::exec();
   }
   template<typename... Args>
   inline ParallelFor(Args... args) : runner(args...) {}
@@ -106,12 +115,14 @@ class ParallelFor<FunctorType, SpecifiedPolicy<PolicyTraits...>, LogicalExecutio
 
 template<class BaseSpace, class FunctorType, template<class...> class SpecifiedPolicy, class ReducerType, class... PolicyTraits, class... SpaceTraits>
 class ParallelReduce<FunctorType, SpecifiedPolicy<PolicyTraits...>, ReducerType, LogicalExecutionSpace<BaseSpace,SpaceTraits...>> {
-
+  using LogicalSpace = LogicalExecutionSpace<BaseSpace, SpaceTraits...>;
   using real_runner = ParallelReduce<FunctorType, SpecifiedPolicy<PolicyTraits...>, ReducerType, BaseSpace>;
   real_runner runner;
   public:
   inline void execute() const {
+    LogicalSpace::pre::exec();
     runner.execute();
+    LogicalSpace::post::exec();
   }
   template<typename... Args>
   inline ParallelReduce(Args... args) : runner(args...) {}
@@ -119,24 +130,30 @@ class ParallelReduce<FunctorType, SpecifiedPolicy<PolicyTraits...>, ReducerType,
 
 template<class BaseSpace, class FunctorType, template<class...> class SpecifiedPolicy,class... PolicyTraits, class... SpaceTraits>
 class ParallelScan<FunctorType, SpecifiedPolicy<PolicyTraits...>, LogicalExecutionSpace<BaseSpace, SpaceTraits...>> {
+  using LogicalSpace = LogicalExecutionSpace<BaseSpace, SpaceTraits...>;
   using Policy = SpecifiedPolicy<PolicyTraits...>;
   using real_runner = ParallelScan<FunctorType, Policy, BaseSpace>;
   real_runner runner;
   public:
   inline void execute() {
+    LogicalSpace::pre::exec();
     runner.execute();
+    LogicalSpace::post::exec();
   }
   template<typename... Args>
   inline ParallelScan(Args... args) : runner(args...) {}
 };
 template<class BaseSpace, class FunctorType, template<class...> class SpecifiedPolicy, class ReturnType, class... PolicyTraits, class... SpaceTraits>
 class ParallelScanWithTotal<FunctorType, SpecifiedPolicy<PolicyTraits...>, ReturnType, LogicalExecutionSpace<BaseSpace, SpaceTraits...>> {
+  using LogicalSpace = LogicalExecutionSpace<BaseSpace, SpaceTraits...>;
   using Policy = SpecifiedPolicy<PolicyTraits...>;
   using real_runner = ParallelScanWithTotal<FunctorType, Policy, ReturnType, BaseSpace>;
   real_runner runner;
   public:
   inline void execute() {
+    LogicalSpace::pre::exec();
     runner.execute();
+    LogicalSpace::post::exec();
   }
   template<typename... Args>
   inline ParallelScanWithTotal(Args... args) : runner(args...) {}

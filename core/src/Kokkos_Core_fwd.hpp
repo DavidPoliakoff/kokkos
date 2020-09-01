@@ -96,7 +96,7 @@ class HBWSpace;  /// Memory space for hbw_malloc from memkind (e.g. for KNL
 #if defined(KOKKOS_ENABLE_SERIAL)
 class Serial;  ///< Execution space main process on CPU.
 #endif
-template<class BaseSpace, class PreferredMemorySpace, class Namer>
+template <class BaseSpace, class PreferredMemorySpace, class Namer, class Prologue, class Epilogue>
 class LogicalExecutionSpace;
 
 #if defined(KOKKOS_ENABLE_HPX)
