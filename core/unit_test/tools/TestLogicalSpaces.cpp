@@ -66,30 +66,31 @@ int main() {
           std::cout << hand.name << ", [" << name << "," << ptr << "] "
                     << size << std::endl;
         });
-    using fake_exec_space = Kokkos::LogicalExecutionSpace<Kokkos::Serial, void>;
+    using fake_exec_space = Kokkos::LogicalExecutionSpace<Kokkos::Serial>;
     using multi_fake_exec_space =
         Kokkos::LogicalExecutionSpace<fake_exec_space>;
     using fake_memory_space =
         Kokkos::LogicalMemorySpace<Kokkos::HostSpace, fake_exec_space,
                                    Kokkos::DefaultMemorySpaceNamer, true>;
-    using multi_fake_memory_space =
-        Kokkos::LogicalMemorySpace<fake_memory_space>;
-    using ofs =
+    using dv_test_space =
         Kokkos::LogicalMemorySpace<Kokkos::HostSpace, Kokkos::Serial,
                                    Kokkos::DefaultMemorySpaceNamer, false>;
     Kokkos::View<double*, fake_memory_space> pup_view("pup_view", 1000);
     Kokkos::View<double*, Kokkos::HostSpace> opup_view("opup_view", 1000);
     std::cout << "=================================" << std::endl;
-    Kokkos::DualView<double*, ofs> pup_dual_vew("pup_dv", 1000);
+    Kokkos::DualView<double*, dv_test_space> pup_dual_vew("pup_dv", 1000);
     std::cout << "=================================" << std::endl;
-    std::cout << pup_dual_vew.h_view.data() << std::endl;
-    std::cout << pup_dual_vew.d_view.data() << std::endl;
+    std::cout << "DV: host: "<<pup_dual_vew.h_view.data() << std::endl;
+    std::cout << "DV: \"device\": "<<pup_dual_vew.d_view.data() << std::endl;
     deep_copy(pup_view, opup_view);
     deep_copy(opup_view, pup_view);
     deep_copy(pup_view, pup_view);
+    std::cout << "Now I'm going to run a kernel that touches the LogicalMemorySpace. It definitely won't cause an access violation." << std::endl;
     Kokkos::parallel_for(
         "pup_kernel", Kokkos::RangePolicy<multi_fake_exec_space>(0, 1000),
         KOKKOS_LAMBDA(const int i) { pup_view(i) = i; });
+    Kokkos::fence();
+    std::cout << "See? What did I tell you." << std::endl;
   }
   Kokkos::finalize();
 }
