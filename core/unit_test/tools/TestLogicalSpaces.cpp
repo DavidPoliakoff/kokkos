@@ -85,6 +85,12 @@ int main() {
     deep_copy(pup_view, opup_view);
     deep_copy(opup_view, pup_view);
     deep_copy(pup_view, pup_view);
+    std::cout << "Can access [f->f] "<<std::boolalpha<<Kokkos::SpaceAccessibility<Kokkos::Experimental::FakeGPU::fake_gpu_space, Kokkos::Experimental::FakeGPU::fake_gpu_memory_space>::accessible << std::endl;
+    std::cout << "Can access [r->f] "<<std::boolalpha<<Kokkos::SpaceAccessibility<Kokkos::HostSpace, Kokkos::Experimental::FakeGPU::fake_gpu_memory_space>::accessible << std::endl;
+    Kokkos::View<double*, Kokkos::Experimental::FakeGPU::fake_gpu_memory_space> fgpm("fake",1000);
+    Kokkos::parallel_for("fill_fake_gpu",Kokkos::RangePolicy<Kokkos::Experimental::FakeGPU::fake_gpu_space>(0,1000), KOKKOS_LAMBDA(int x){
+      fgpm(x) = 5.0;
+    });
     std::cout << "Now I'm going to run a kernel that touches the LogicalMemorySpace. It definitely won't cause an access violation." << std::endl;
     Kokkos::parallel_for(
         "pup_kernel", Kokkos::RangePolicy<multi_fake_exec_space>(0, 1000),

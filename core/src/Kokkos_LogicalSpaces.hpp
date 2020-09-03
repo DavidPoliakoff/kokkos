@@ -604,29 +604,43 @@ struct FakeCPUMemoryNamer {
 using fake_gpu_memory_space = Kokkos::LogicalMemorySpace<Kokkos::HostSpace, void, FakeGPUMemoryNamer, false>;
 using fake_cpu_memory_space = Kokkos::LogicalMemorySpace<Kokkos::HostSpace, void, FakeCPUMemoryNamer, false>;
 
+
 using fake_gpu_space = Kokkos::LogicalExecutionSpace<Kokkos::Serial, fake_gpu_memory_space, FakeGPUNamer, StartGPURegion, EndKokkosRegion>;
 using fake_cpu_space = Kokkos::LogicalExecutionSpace<Kokkos::Serial, fake_cpu_memory_space, FakeCPUNamer, StartCPURegion, EndKokkosRegion>;
 
 
 
-} // Experimental
 } // FakeGPU
+} // Experimental
+
+template<>
+struct SpaceAccessibility<Kokkos::Experimental::FakeGPU::fake_gpu_space, Kokkos::Experimental::FakeGPU::fake_gpu_memory_space> {
+  enum { accessible = true };
+  enum { assignable = true };
+  enum { deepcopy = true };
+};
 
 namespace Impl {
+template<typename ValueType, typename OnRead, typename OnWrite>
+struct CheckedAccessor {
+  ValueType value;
+  std::uintptr_t address;
+};
 template <typename ValueType, typename AliasType>
 struct CheckedFetcher {
-  const ValueType* m_ptr;
+  ValueType* m_ptr;
   int m_offset;
 
   // Deference operator pulls through texture object and returns by value
   template <typename iType>
-  KOKKOS_INLINE_FUNCTION ValueType operator[](const iType& i) const {
+  KOKKOS_INLINE_FUNCTION ValueType& operator[](const iType& i) const {
+    //std::cout << "Fetch on "<<i <<std::endl;
     return m_ptr[i];
   }
 
   // Pointer to referenced memory
   KOKKOS_INLINE_FUNCTION
-  operator const ValueType*() const { return m_ptr; }
+  operator ValueType*() const { return m_ptr; }
 
   KOKKOS_INLINE_FUNCTION
   CheckedFetcher() : m_ptr(), m_offset() {}
@@ -656,11 +670,14 @@ struct CheckedFetcher {
     return *this;
   }
 
+  inline explicit CheckedFetcher(
+      ValueType* arg_ptr) : m_ptr(arg_ptr), m_offset(0) {} 
+
   // Texture object spans the entire allocation.
   // This handle may view a subset of the allocation, so an offset is required.
   template <class CudaMemorySpace>
   inline explicit CheckedFetcher(
-      const ValueType* const arg_ptr,
+      ValueType* arg_ptr,
       Kokkos::Impl::SharedAllocationRecord<CudaMemorySpace, void>* record)
       :
         m_ptr(arg_ptr),
@@ -686,8 +703,8 @@ class ViewDataHandle<
  public:
   using track_type = Kokkos::Impl::SharedAllocationTracker;
 
-  using value_type  = typename Traits::const_value_type;
-  using return_type = typename Traits::const_value_type;  // NOT a reference
+  using value_type  = typename Traits::value_type;
+  using return_type = typename Traits::value_type&;
 
   using alias_type = typename std::conditional<
       (sizeof(value_type) == 4), int,
