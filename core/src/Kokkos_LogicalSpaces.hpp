@@ -8,10 +8,13 @@
 #include <impl/Kokkos_SharedAlloc.hpp>
 #include <impl/Kokkos_Profiling_Interface.hpp>
 #include <iostream>
+#include <cstdint>
 namespace Kokkos {
 
 struct DefaultExecutionSpaceNamer {
-  static constexpr const char* get_name() { return "DefaultLogicalExecutionSpaceName"; }
+  static constexpr const char* get_name() {
+    return "DefaultLogicalExecutionSpaceName";
+  }
 };
 struct DefaultMemorySpaceNamer {
   static constexpr const char* get_name() {
@@ -28,16 +31,18 @@ template <class BaseSpace, class PreferredMemorySpace = void,
           class Prologue = EmptyModifier, class Epilogue = EmptyModifier>
 class LogicalExecutionSpace {
   BaseSpace space;
+
  public:
-   using pre = Prologue;
-   using post = Epilogue;
-   template<typename... Args>
-   LogicalExecutionSpace(Args... args) : space(args...) {};
+  using pre  = Prologue;
+  using post = Epilogue;
+  template <typename... Args>
+  LogicalExecutionSpace(Args... args) : space(args...){};
   //! \name Type declarations that all Kokkos devices must provide.
   //@{
 
   //! Tag this class as an execution space:
-  using execution_space = LogicalExecutionSpace<BaseSpace, PreferredMemorySpace, Namer, Prologue, Epilogue>;
+  using execution_space = LogicalExecutionSpace<BaseSpace, PreferredMemorySpace,
+                                                Namer, Prologue, Epilogue>;
   //! The size_type alias best suited for this device.
   using size_type = typename BaseSpace::size_type;
   //! This device's preferred memory space.
@@ -49,7 +54,7 @@ class LogicalExecutionSpace {
   using device_type = Kokkos::Device<execution_space, memory_space>;
 
   //! This device's preferred array layout.
-  using array_layout = typename BaseSpace::array_layout; // TODO: better
+  using array_layout = typename BaseSpace::array_layout;  // TODO: better
 
   /// \brief  Scratch memory space
   using scratch_memory_space = Kokkos::ScratchMemorySpace<BaseSpace>;
@@ -85,7 +90,9 @@ class LogicalExecutionSpace {
 
   static void impl_initialize() { BaseSpace::impl_initialize(); };
 
-  static bool impl_is_initialized() { return BaseSpace::impl_is_initialized(); };
+  static bool impl_is_initialized() {
+    return BaseSpace::impl_is_initialized();
+  };
 
   //! Free any resources being consumed by the device.
   static void impl_finalize() { BaseSpace::finalize(); };
@@ -110,454 +117,630 @@ class LogicalExecutionSpace {
 
 namespace Impl {
 
-template<class BaseSpace, class FunctorType, template<class...> class SpecifiedPolicy,class... PolicyTraits, class... SpaceTraits>
-class ParallelFor<FunctorType, SpecifiedPolicy<PolicyTraits...>, LogicalExecutionSpace<BaseSpace, SpaceTraits...>> {
+template <class BaseSpace, class FunctorType,
+          template <class...> class SpecifiedPolicy, class... PolicyTraits,
+          class... SpaceTraits>
+class ParallelFor<FunctorType, SpecifiedPolicy<PolicyTraits...>,
+                  LogicalExecutionSpace<BaseSpace, SpaceTraits...>> {
   using LogicalSpace = LogicalExecutionSpace<BaseSpace, SpaceTraits...>;
-  using Policy = SpecifiedPolicy<PolicyTraits...>;
-  using real_runner = ParallelFor<FunctorType, Policy, BaseSpace>;
+  using Policy       = SpecifiedPolicy<PolicyTraits...>;
+  using real_runner  = ParallelFor<FunctorType, Policy, BaseSpace>;
   real_runner runner;
-  public:
+
+ public:
   inline void execute() const {
     LogicalSpace::pre::exec();
     runner.execute();
     LogicalSpace::post::exec();
   }
-  template<typename... Args>
+  template <typename... Args>
   inline ParallelFor(Args... args) : runner(args...) {}
 };
 
-template<class BaseSpace, class FunctorType, template<class...> class SpecifiedPolicy, class ReducerType, class... PolicyTraits, class... SpaceTraits>
-class ParallelReduce<FunctorType, SpecifiedPolicy<PolicyTraits...>, ReducerType, LogicalExecutionSpace<BaseSpace,SpaceTraits...>> {
+template <class BaseSpace, class FunctorType,
+          template <class...> class SpecifiedPolicy, class ReducerType,
+          class... PolicyTraits, class... SpaceTraits>
+class ParallelReduce<FunctorType, SpecifiedPolicy<PolicyTraits...>, ReducerType,
+                     LogicalExecutionSpace<BaseSpace, SpaceTraits...>> {
   using LogicalSpace = LogicalExecutionSpace<BaseSpace, SpaceTraits...>;
-  using real_runner = ParallelReduce<FunctorType, SpecifiedPolicy<PolicyTraits...>, ReducerType, BaseSpace>;
+  using real_runner =
+      ParallelReduce<FunctorType, SpecifiedPolicy<PolicyTraits...>, ReducerType,
+                     BaseSpace>;
   real_runner runner;
-  public:
+
+ public:
   inline void execute() const {
     LogicalSpace::pre::exec();
     runner.execute();
     LogicalSpace::post::exec();
   }
-  template<typename... Args>
+  template <typename... Args>
   inline ParallelReduce(Args... args) : runner(args...) {}
 };
 
-template<class BaseSpace, class FunctorType, template<class...> class SpecifiedPolicy,class... PolicyTraits, class... SpaceTraits>
-class ParallelScan<FunctorType, SpecifiedPolicy<PolicyTraits...>, LogicalExecutionSpace<BaseSpace, SpaceTraits...>> {
+template <class BaseSpace, class FunctorType,
+          template <class...> class SpecifiedPolicy, class... PolicyTraits,
+          class... SpaceTraits>
+class ParallelScan<FunctorType, SpecifiedPolicy<PolicyTraits...>,
+                   LogicalExecutionSpace<BaseSpace, SpaceTraits...>> {
   using LogicalSpace = LogicalExecutionSpace<BaseSpace, SpaceTraits...>;
-  using Policy = SpecifiedPolicy<PolicyTraits...>;
-  using real_runner = ParallelScan<FunctorType, Policy, BaseSpace>;
+  using Policy       = SpecifiedPolicy<PolicyTraits...>;
+  using real_runner  = ParallelScan<FunctorType, Policy, BaseSpace>;
   real_runner runner;
-  public:
+
+ public:
   inline void execute() {
     LogicalSpace::pre::exec();
     runner.execute();
     LogicalSpace::post::exec();
   }
-  template<typename... Args>
+  template <typename... Args>
   inline ParallelScan(Args... args) : runner(args...) {}
 };
-template<class BaseSpace, class FunctorType, template<class...> class SpecifiedPolicy, class ReturnType, class... PolicyTraits, class... SpaceTraits>
-class ParallelScanWithTotal<FunctorType, SpecifiedPolicy<PolicyTraits...>, ReturnType, LogicalExecutionSpace<BaseSpace, SpaceTraits...>> {
+template <class BaseSpace, class FunctorType,
+          template <class...> class SpecifiedPolicy, class ReturnType,
+          class... PolicyTraits, class... SpaceTraits>
+class ParallelScanWithTotal<FunctorType, SpecifiedPolicy<PolicyTraits...>,
+                            ReturnType,
+                            LogicalExecutionSpace<BaseSpace, SpaceTraits...>> {
   using LogicalSpace = LogicalExecutionSpace<BaseSpace, SpaceTraits...>;
-  using Policy = SpecifiedPolicy<PolicyTraits...>;
-  using real_runner = ParallelScanWithTotal<FunctorType, Policy, ReturnType, BaseSpace>;
+  using Policy       = SpecifiedPolicy<PolicyTraits...>;
+  using real_runner =
+      ParallelScanWithTotal<FunctorType, Policy, ReturnType, BaseSpace>;
   real_runner runner;
-  public:
+
+ public:
   inline void execute() {
     LogicalSpace::pre::exec();
     runner.execute();
     LogicalSpace::post::exec();
   }
-  template<typename... Args>
+  template <typename... Args>
   inline ParallelScanWithTotal(Args... args) : runner(args...) {}
 };
 
-}// Impl
+}  // namespace Impl
 namespace Tools {
-	namespace Experimental {
+namespace Experimental {
 template <class BaseSpace, class... SpaceTraits>
-struct DeviceTypeTraits<Kokkos::LogicalExecutionSpace<BaseSpace,SpaceTraits...>> {
+struct DeviceTypeTraits<
+    Kokkos::LogicalExecutionSpace<BaseSpace, SpaceTraits...>> {
   static constexpr DeviceType id = DeviceType::Logical;
 };
-  
-	}}
 
-        /// \class LogicalMemorySpace
-        /// \brief
-        ///
-        /// LogicalMemorySpace is a space that is identical to another space,
-        /// but differentiable by name and template argument
+}  // namespace Experimental
+}  // namespace Tools
 
-        template <class BaseSpace, class DefaultExecutionSpace = void,
-                  class Namer               = DefaultMemorySpaceNamer,
-                  bool SharesAccessWithBase = true>
-        class LogicalMemorySpace {
-         public:
-          //! Tag this class as a kokkos memory space
-          using memory_space =
-              LogicalMemorySpace<BaseSpace, DefaultExecutionSpace, Namer,
-                                 SharesAccessWithBase>;
-          using size_type = size_t;
+/// \class LogicalMemorySpace
+/// \brief
+///
+/// LogicalMemorySpace is a space that is identical to another space,
+/// but differentiable by name and template argument
 
-          /// \typedef execution_space
-          /// \brief Default execution space for this memory space.
-          ///
-          /// Every memory space has a default execution space.  This is
-          /// useful for things like initializing a View (which happens in
-          /// parallel using the View's default execution space).
+template <class BaseSpace, class DefaultExecutionSpace = void,
+          class Namer               = DefaultMemorySpaceNamer,
+          bool SharesAccessWithBase = true>
+class LogicalMemorySpace {
+ public:
+  //! Tag this class as a kokkos memory space
+  using memory_space = LogicalMemorySpace<BaseSpace, DefaultExecutionSpace,
+                                          Namer, SharesAccessWithBase>;
+  using size_type    = size_t;
 
-          using execution_space = typename std::conditional<
-              std::is_void<DefaultExecutionSpace>::value,
-              typename BaseSpace::execution_space, DefaultExecutionSpace>::type;
+  /// \typedef execution_space
+  /// \brief Default execution space for this memory space.
+  ///
+  /// Every memory space has a default execution space.  This is
+  /// useful for things like initializing a View (which happens in
+  /// parallel using the View's default execution space).
 
-          using device_type = Kokkos::Device<execution_space, memory_space>;
+  using execution_space =
+      typename std::conditional<std::is_void<DefaultExecutionSpace>::value,
+                                typename BaseSpace::execution_space,
+                                DefaultExecutionSpace>::type;
 
-          /**\brief  Default memory space instance */
-          LogicalMemorySpace() : underlying_allocator(){};
-          LogicalMemorySpace(LogicalMemorySpace&& rhs)      = default;
-          LogicalMemorySpace(const LogicalMemorySpace& rhs) = default;
-          LogicalMemorySpace& operator=(LogicalMemorySpace&&) = default;
-          LogicalMemorySpace& operator=(const LogicalMemorySpace&) = default;
-          ~LogicalMemorySpace()                                    = default;
+  using device_type = Kokkos::Device<execution_space, memory_space>;
 
-          BaseSpace underlying_allocator;
+  /**\brief  Default memory space instance */
+  LogicalMemorySpace() : underlying_allocator(){};
+  LogicalMemorySpace(LogicalMemorySpace&& rhs)      = default;
+  LogicalMemorySpace(const LogicalMemorySpace& rhs) = default;
+  LogicalMemorySpace& operator=(LogicalMemorySpace&&) = default;
+  LogicalMemorySpace& operator=(const LogicalMemorySpace&) = default;
+  ~LogicalMemorySpace()                                    = default;
 
-          template <typename... Args>
-          LogicalMemorySpace(Args&&... args) : underlying_allocator(args...) {}
+  BaseSpace underlying_allocator;
 
-          /**\brief  Allocate untracked memory in the space */
-          void* allocate(const size_t arg_alloc_size) const {
-            return allocate("[unlabeled]",arg_alloc_size);
-          }
-          void* allocate(const char* arg_label, const size_t arg_alloc_size, const size_t arg_logical_size= 0) const {
-            return underlying_allocator.allocate(arg_label, arg_alloc_size, arg_logical_size);
-	  }
-          /**\brief  Deallocate untracked memory in the space */
-          void deallocate(void* const arg_alloc_ptr,
-                          const size_t arg_alloc_size) const {
-            return underlying_allocator.deallocate(arg_alloc_ptr,
-                                                   arg_alloc_size);
-          }
+  template <typename... Args>
+  LogicalMemorySpace(Args&&... args) : underlying_allocator(args...) {}
 
-          /**\brief Return Name of the MemorySpace */
-          constexpr static const char* name() { return Namer::get_name(); }
+  /**\brief  Allocate untracked memory in the space */
+  void* allocate(const size_t arg_alloc_size) const {
+    return allocate("[unlabeled]", arg_alloc_size);
+  }
+  void* allocate(const char* arg_label, const size_t arg_alloc_size,
+                 const size_t arg_logical_size = 0) const {
+    return underlying_allocator.allocate(arg_label, arg_alloc_size,
+                                         arg_logical_size);
+  }
+  /**\brief  Deallocate untracked memory in the space */
+  void deallocate(void* const arg_alloc_ptr,
+                  const size_t arg_alloc_size) const {
+    return underlying_allocator.deallocate(arg_alloc_ptr, arg_alloc_size);
+  }
 
-         private:
-          friend class Kokkos::Impl::SharedAllocationRecord<memory_space, void>;
-        };
+  /**\brief Return Name of the MemorySpace */
+  constexpr static const char* name() { return Namer::get_name(); }
 
-        }  // namespace Kokkos
+ private:
+  friend class Kokkos::Impl::SharedAllocationRecord<memory_space, void>;
+};
 
-        //----------------------------------------------------------------------------
+}  // namespace Kokkos
 
-        namespace Kokkos {
+//----------------------------------------------------------------------------
 
-        namespace Impl {
+namespace Kokkos {
 
-        template <typename BaseSpace, typename DefaultExecutionSpace,
-                  class Namer, typename OtherSpace>
-        struct MemorySpaceAccess<
-            Kokkos::LogicalMemorySpace<BaseSpace, DefaultExecutionSpace, Namer,
-                                       true>,
-            OtherSpace> {
-          enum {
-            assignable = MemorySpaceAccess<BaseSpace, OtherSpace>::assignable
-          };
-          enum {
-            accessible = MemorySpaceAccess<BaseSpace, OtherSpace>::accessible
-          };
-          enum {
-            deepcopy = MemorySpaceAccess<BaseSpace, OtherSpace>::deepcopy
-          };
-        };
+namespace Impl {
 
-        template <typename BaseSpace, typename DefaultExecutionSpace,
-                  class Namer, typename OtherSpace>
-        struct MemorySpaceAccess<
-            OtherSpace, Kokkos::LogicalMemorySpace<
-                            BaseSpace, DefaultExecutionSpace, Namer, true>> {
-          enum {
-            assignable = MemorySpaceAccess<OtherSpace, BaseSpace>::assignable
-          };
-          enum {
-            accessible = MemorySpaceAccess<OtherSpace, BaseSpace>::accessible
-          };
-          enum {
-            deepcopy = MemorySpaceAccess<OtherSpace, BaseSpace>::deepcopy
-          };
-        };
+template <typename BaseSpace, typename DefaultExecutionSpace, class Namer,
+          typename OtherSpace>
+struct MemorySpaceAccess<
+    Kokkos::LogicalMemorySpace<BaseSpace, DefaultExecutionSpace, Namer, true>,
+    OtherSpace> {
+  enum { assignable = MemorySpaceAccess<BaseSpace, OtherSpace>::assignable };
+  enum { accessible = MemorySpaceAccess<BaseSpace, OtherSpace>::accessible };
+  enum { deepcopy = MemorySpaceAccess<BaseSpace, OtherSpace>::deepcopy };
+};
 
-        template <typename BaseSpace, typename DefaultExecutionSpace,
-                  class Namer>
-        struct MemorySpaceAccess<
-            Kokkos::LogicalMemorySpace<BaseSpace, DefaultExecutionSpace, Namer,
-                                       true>,
-            Kokkos::LogicalMemorySpace<BaseSpace, DefaultExecutionSpace, Namer,
-                                       true>> {
-          enum { assignable = true };
-          enum { accessible = true };
-          enum { deepcopy = true };
-        };
+template <typename BaseSpace, typename DefaultExecutionSpace, class Namer,
+          typename OtherSpace>
+struct MemorySpaceAccess<
+    OtherSpace,
+    Kokkos::LogicalMemorySpace<BaseSpace, DefaultExecutionSpace, Namer, true>> {
+  enum { assignable = MemorySpaceAccess<OtherSpace, BaseSpace>::assignable };
+  enum { accessible = MemorySpaceAccess<OtherSpace, BaseSpace>::accessible };
+  enum { deepcopy = MemorySpaceAccess<OtherSpace, BaseSpace>::deepcopy };
+};
 
-        template <typename BaseSpace, typename DefaultExecutionSpace,
-                  class Namer>
-        struct MemorySpaceAccess<
-            Kokkos::AnonymousSpace,
-            Kokkos::LogicalMemorySpace<BaseSpace, DefaultExecutionSpace, Namer,
-                                       true>> {
-          enum { assignable = true };
-          enum { accessible = true };
-          enum { deepcopy = true };
-        };
+template <typename BaseSpace, typename DefaultExecutionSpace, class Namer>
+struct MemorySpaceAccess<
+    Kokkos::LogicalMemorySpace<BaseSpace, DefaultExecutionSpace, Namer, true>,
+    Kokkos::LogicalMemorySpace<BaseSpace, DefaultExecutionSpace, Namer, true>> {
+  enum { assignable = true };
+  enum { accessible = true };
+  enum { deepcopy = true };
+};
 
-        }  // namespace Impl
+template <typename BaseSpace, typename DefaultExecutionSpace, class Namer>
+struct MemorySpaceAccess<
+    Kokkos::AnonymousSpace,
+    Kokkos::LogicalMemorySpace<BaseSpace, DefaultExecutionSpace, Namer, true>> {
+  enum { assignable = true };
+  enum { accessible = true };
+  enum { deepcopy = true };
+};
 
-        }  // namespace Kokkos
+}  // namespace Impl
 
-        //----------------------------------------------------------------------------
+}  // namespace Kokkos
 
-        namespace Kokkos {
+//----------------------------------------------------------------------------
 
-        namespace Impl {
+namespace Kokkos {
 
-        template <class BaseSpace, class DefaultExecutionSpace, class Namer,
-                  bool SharesAccessSemanticsWithBase>
-        class SharedAllocationRecord<
-            Kokkos::LogicalMemorySpace<BaseSpace, DefaultExecutionSpace, Namer,
-                                       SharesAccessSemanticsWithBase>,
-            void> : public SharedAllocationRecord<void, void> {
-         private:
-          using SpaceType =
-              Kokkos::LogicalMemorySpace<BaseSpace, DefaultExecutionSpace,
-                                         Namer, SharesAccessSemanticsWithBase>;
-          using RecordBase = SharedAllocationRecord<void, void>;
+namespace Impl {
 
-          friend SpaceType;
-          SharedAllocationRecord(const SharedAllocationRecord&) = delete;
-          SharedAllocationRecord& operator=(const SharedAllocationRecord&) =
-              delete;
+template <class BaseSpace, class DefaultExecutionSpace, class Namer,
+          bool SharesAccessSemanticsWithBase>
+class SharedAllocationRecord<
+    Kokkos::LogicalMemorySpace<BaseSpace, DefaultExecutionSpace, Namer,
+                               SharesAccessSemanticsWithBase>,
+    void> : public SharedAllocationRecord<void, void> {
+ private:
+  using SpaceType =
+      Kokkos::LogicalMemorySpace<BaseSpace, DefaultExecutionSpace, Namer,
+                                 SharesAccessSemanticsWithBase>;
+  using RecordBase = SharedAllocationRecord<void, void>;
 
-          static void deallocate(RecordBase* arg_rec) {
-            delete static_cast<SharedAllocationRecord*>(arg_rec);
-          }
+  friend SpaceType;
+  SharedAllocationRecord(const SharedAllocationRecord&) = delete;
+  SharedAllocationRecord& operator=(const SharedAllocationRecord&) = delete;
+
+  static void deallocate(RecordBase* arg_rec) {
+    delete static_cast<SharedAllocationRecord*>(arg_rec);
+  }
 
 #ifdef KOKKOS_DEBUG
-          /**\brief  Root record for tracked allocations from this
-           * LogicalMemorySpace instance */
-          static RecordBase s_root_record;
+  /**\brief  Root record for tracked allocations from this
+   * LogicalMemorySpace instance */
+  static RecordBase s_root_record;
 #endif
 
-          const SpaceType m_space;
+  const SpaceType m_space;
 
-         protected:
-          ~SharedAllocationRecord() {
+ protected:
+  ~SharedAllocationRecord() {
 #if defined(KOKKOS_ENABLE_PROFILING)
-            if (Kokkos::Profiling::profileLibraryLoaded()) {
-              Kokkos::Profiling::deallocateData(
-                  Kokkos::Profiling::make_space_handle(m_space.name()),
-                  RecordBase::m_alloc_ptr->m_label, data(), size());
-            }
+    if (Kokkos::Profiling::profileLibraryLoaded()) {
+      Kokkos::Profiling::deallocateData(
+          Kokkos::Profiling::make_space_handle(m_space.name()),
+          RecordBase::m_alloc_ptr->m_label, data(), size());
+    }
 #endif
 
-            m_space.deallocate(
-                SharedAllocationRecord<void, void>::m_alloc_ptr,
-                SharedAllocationRecord<void, void>::m_alloc_size);
-          }
-          SharedAllocationRecord() = default;
+    m_space.deallocate(SharedAllocationRecord<void, void>::m_alloc_ptr,
+                       SharedAllocationRecord<void, void>::m_alloc_size);
+  }
+  SharedAllocationRecord() = default;
 
-          SharedAllocationRecord(
-              const SpaceType& arg_space, const std::string& arg_label,
-              const size_t arg_alloc_size,
-              const RecordBase::function_type arg_dealloc = &deallocate)
-              : SharedAllocationRecord<void, void>(
+  SharedAllocationRecord(
+      const SpaceType& arg_space, const std::string& arg_label,
+      const size_t arg_alloc_size,
+      const RecordBase::function_type arg_dealloc = &deallocate)
+      : SharedAllocationRecord<void, void>(
 #ifdef KOKKOS_DEBUG
-                    &SharedAllocationRecord<SpaceType, void>::s_root_record,
+            &SharedAllocationRecord<SpaceType, void>::s_root_record,
 #endif
-                    reinterpret_cast<SharedAllocationHeader*>(
-                        arg_space.allocate(arg_label.c_str(),sizeof(SharedAllocationHeader) +
-                                           arg_alloc_size, arg_alloc_size)),
-                    sizeof(SharedAllocationHeader) + arg_alloc_size,
-                    arg_dealloc),
-                m_space(arg_space) {
+            reinterpret_cast<SharedAllocationHeader*>(arg_space.allocate(
+                arg_label.c_str(),
+                sizeof(SharedAllocationHeader) + arg_alloc_size,
+                arg_alloc_size)),
+            sizeof(SharedAllocationHeader) + arg_alloc_size, arg_dealloc),
+        m_space(arg_space) {
 #if defined(KOKKOS_ENABLE_PROFILING)
-            if (Kokkos::Profiling::profileLibraryLoaded()) {
-              Kokkos::Profiling::allocateData(
-                  Kokkos::Profiling::make_space_handle(arg_space.name()),
-                  arg_label, data(), arg_alloc_size);
-            }
+    if (Kokkos::Profiling::profileLibraryLoaded()) {
+      Kokkos::Profiling::allocateData(
+          Kokkos::Profiling::make_space_handle(arg_space.name()), arg_label,
+          data(), arg_alloc_size);
+    }
 #endif
-            // Fill in the Header information
-            RecordBase::m_alloc_ptr->m_record =
-                static_cast<SharedAllocationRecord<void, void>*>(this);
+    // Fill in the Header information
+    RecordBase::m_alloc_ptr->m_record =
+        static_cast<SharedAllocationRecord<void, void>*>(this);
 
-            strncpy(RecordBase::m_alloc_ptr->m_label, arg_label.c_str(),
-                    SharedAllocationHeader::maximum_label_length);
-            // Set last element zero, in case c_str is too long
-            RecordBase::m_alloc_ptr
-                ->m_label[SharedAllocationHeader::maximum_label_length - 1] =
-                (char)0;
-          }
+    strncpy(RecordBase::m_alloc_ptr->m_label, arg_label.c_str(),
+            SharedAllocationHeader::maximum_label_length);
+    // Set last element zero, in case c_str is too long
+    RecordBase::m_alloc_ptr
+        ->m_label[SharedAllocationHeader::maximum_label_length - 1] = (char)0;
+  }
 
-         public:
-          inline std::string get_label() const {
-            return std::string(RecordBase::head()->m_label);
-          }
-          KOKKOS_INLINE_FUNCTION static SharedAllocationRecord* allocate(
-              const SpaceType& arg_space, const std::string& arg_label,
-              const size_t arg_alloc_size) {
+ public:
+  inline std::string get_label() const {
+    return std::string(RecordBase::head()->m_label);
+  }
+  KOKKOS_INLINE_FUNCTION static SharedAllocationRecord* allocate(
+      const SpaceType& arg_space, const std::string& arg_label,
+      const size_t arg_alloc_size) {
 #if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-            return new SharedAllocationRecord(arg_space, arg_label,
-                                              arg_alloc_size);
+    return new SharedAllocationRecord(arg_space, arg_label, arg_alloc_size);
 #else
-            (void)arg_space;
-            (void)arg_label;
-            (void)arg_alloc_size;
-            return (SharedAllocationRecord*)0;
+    (void)arg_space;
+    (void)arg_label;
+    (void)arg_alloc_size;
+    return (SharedAllocationRecord*)0;
 #endif
-          }
+  }
 
-          /**\brief  Allocate tracked memory in the space */
-          static void* allocate_tracked(const SpaceType& arg_space,
-                                        const std::string& arg_label,
-                                        const size_t arg_alloc_size) {
-            if (!arg_alloc_size) return (void*)0;
+  /**\brief  Allocate tracked memory in the space */
+  static void* allocate_tracked(const SpaceType& arg_space,
+                                const std::string& arg_label,
+                                const size_t arg_alloc_size) {
+    if (!arg_alloc_size) return (void*)0;
 
-            SharedAllocationRecord* const r =
-                allocate(arg_space, arg_label, arg_alloc_size);
+    SharedAllocationRecord* const r =
+        allocate(arg_space, arg_label, arg_alloc_size);
 
-            RecordBase::increment(r);
+    RecordBase::increment(r);
 
-            return r->data();
-          }
+    return r->data();
+  }
 
-          /**\brief  Reallocate tracked memory in the space */
-          static void* reallocate_tracked(void* const arg_alloc_ptr,
-                                          const size_t arg_alloc_size) {
-            SharedAllocationRecord* const r_old = get_record(arg_alloc_ptr);
-            SharedAllocationRecord* const r_new =
-                allocate(r_old->m_space, r_old->get_label(), arg_alloc_size);
+  /**\brief  Reallocate tracked memory in the space */
+  static void* reallocate_tracked(void* const arg_alloc_ptr,
+                                  const size_t arg_alloc_size) {
+    SharedAllocationRecord* const r_old = get_record(arg_alloc_ptr);
+    SharedAllocationRecord* const r_new =
+        allocate(r_old->m_space, r_old->get_label(), arg_alloc_size);
 
-            Kokkos::Impl::DeepCopy<SpaceType, SpaceType>(
-                r_new->data(), r_old->data(),
-                std::min(r_old->size(), r_new->size()));
+    Kokkos::Impl::DeepCopy<SpaceType, SpaceType>(
+        r_new->data(), r_old->data(), std::min(r_old->size(), r_new->size()));
 
-            RecordBase::increment(r_new);
-            RecordBase::decrement(r_old);
+    RecordBase::increment(r_new);
+    RecordBase::decrement(r_old);
 
-            return r_new->data();
-          }
-          /**\brief  Deallocate tracked memory in the space */
-          static void deallocate_tracked(void* const arg_alloc_ptr) {
-            if (arg_alloc_ptr != nullptr) {
-              SharedAllocationRecord* const r = get_record(arg_alloc_ptr);
+    return r_new->data();
+  }
+  /**\brief  Deallocate tracked memory in the space */
+  static void deallocate_tracked(void* const arg_alloc_ptr) {
+    if (arg_alloc_ptr != nullptr) {
+      SharedAllocationRecord* const r = get_record(arg_alloc_ptr);
 
-              RecordBase::decrement(r);
-            }
-          }
+      RecordBase::decrement(r);
+    }
+  }
 
-          static SharedAllocationRecord* get_record(void* alloc_ptr) {
-            using Header     = SharedAllocationHeader;
-            using RecordHost = SharedAllocationRecord<SpaceType, void>;
+  static SharedAllocationRecord* get_record(void* alloc_ptr) {
+    using Header     = SharedAllocationHeader;
+    using RecordHost = SharedAllocationRecord<SpaceType, void>;
 
-            SharedAllocationHeader const* const head =
-                alloc_ptr ? Header::get_header(alloc_ptr)
-                          : (SharedAllocationHeader*)nullptr;
-            RecordHost* const record =
-                head ? static_cast<RecordHost*>(head->m_record)
-                     : (RecordHost*)0;
+    SharedAllocationHeader const* const head =
+        alloc_ptr ? Header::get_header(alloc_ptr)
+                  : (SharedAllocationHeader*)nullptr;
+    RecordHost* const record =
+        head ? static_cast<RecordHost*>(head->m_record) : (RecordHost*)0;
 
-            if (!alloc_ptr || record->m_alloc_ptr != head) {
-              Kokkos::Impl::throw_runtime_exception(std::string(
-                  "Kokkos::Impl::SharedAllocationRecord< SpaceType , "
-                  "void >::get_record ERROR"));
-            }
+    if (!alloc_ptr || record->m_alloc_ptr != head) {
+      Kokkos::Impl::throw_runtime_exception(
+          std::string("Kokkos::Impl::SharedAllocationRecord< SpaceType , "
+                      "void >::get_record ERROR"));
+    }
 
-            return record;
-          }
+    return record;
+  }
 #ifdef KOKKOS_DEBUG
-          static void print_records(std::ostream& s, const SpaceType&,
-                                    bool detail = false) {
-            SharedAllocationRecord<void, void>::print_host_accessible_records(
-                s, "HostSpace", &s_root_record, detail);
-          }
+  static void print_records(std::ostream& s, const SpaceType&,
+                            bool detail = false) {
+    SharedAllocationRecord<void, void>::print_host_accessible_records(
+        s, "HostSpace", &s_root_record, detail);
+  }
 #else
-          static void print_records(std::ostream&, const SpaceType&,
-                                    bool detail = false) {
-            (void)detail;
-            throw_runtime_exception(
-                "SharedAllocationRecord<HostSpace>::print_records only works "
-                "with "
-                "KOKKOS_DEBUG enabled");
-          }
+  static void print_records(std::ostream&, const SpaceType&,
+                            bool detail = false) {
+    (void)detail;
+    throw_runtime_exception(
+        "SharedAllocationRecord<HostSpace>::print_records only works "
+        "with "
+        "KOKKOS_DEBUG enabled");
+  }
 #endif
-        };
+};
 #ifdef KOKKOS_DEBUG
-        /**\brief  Root record for tracked allocations from this HostSpace
-         * instance */
-        template <const char* Name, class BaseSpace,
-                  class DefaultExecutionSpace,
-                  bool SharesAccessSemanticsWithBase>
-        RecordBase<BaseSpace, DefaultExecutionSpace,
-                   SharesAccessSemanticsWithBase>::s_root_record;
+/**\brief  Root record for tracked allocations from this HostSpace
+ * instance */
+template <const char* Name, class BaseSpace, class DefaultExecutionSpace,
+          bool SharesAccessSemanticsWithBase>
+RecordBase<BaseSpace, DefaultExecutionSpace,
+           SharesAccessSemanticsWithBase>::s_root_record;
 #endif
 
-        }  // namespace Impl
+}  // namespace Impl
 
-        }  // namespace Kokkos
+}  // namespace Kokkos
 
-        //----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 
-        namespace Kokkos {
+namespace Kokkos {
 
-        namespace Impl {
+namespace Impl {
 
-        template <class Namer, class BaseSpace, class DefaultExecutionSpace,
-                  bool SharesAccessSemanticsWithBase, class ExecutionSpace>
-        struct DeepCopy<
-            Kokkos::LogicalMemorySpace<BaseSpace, DefaultExecutionSpace, Namer,
-                                       SharesAccessSemanticsWithBase>,
-            Kokkos::LogicalMemorySpace<BaseSpace, DefaultExecutionSpace, Namer,
-                                       SharesAccessSemanticsWithBase>,
-            ExecutionSpace> {
-          DeepCopy(void* dst, void* src, size_t n) {
-            DeepCopy<BaseSpace, BaseSpace, ExecutionSpace>(dst, src, n);
-          }
-          DeepCopy(const ExecutionSpace& exec, void* dst, void* src, size_t n) {
-            DeepCopy<BaseSpace, BaseSpace, ExecutionSpace>(exec, dst, src, n);
-          }
-        };
+template <class Namer, class BaseSpace, class DefaultExecutionSpace,
+          bool SharesAccessSemanticsWithBase, class ExecutionSpace>
+struct DeepCopy<
+    Kokkos::LogicalMemorySpace<BaseSpace, DefaultExecutionSpace, Namer,
+                               SharesAccessSemanticsWithBase>,
+    Kokkos::LogicalMemorySpace<BaseSpace, DefaultExecutionSpace, Namer,
+                               SharesAccessSemanticsWithBase>,
+    ExecutionSpace> {
+  DeepCopy(void* dst, void* src, size_t n) {
+    DeepCopy<BaseSpace, BaseSpace, ExecutionSpace>(dst, src, n);
+  }
+  DeepCopy(const ExecutionSpace& exec, void* dst, void* src, size_t n) {
+    DeepCopy<BaseSpace, BaseSpace, ExecutionSpace>(exec, dst, src, n);
+  }
+};
 
-        template <class Namer, class BaseSpace, class DefaultExecutionSpace,
-                  bool SharesAccessSemanticsWithBase, class ExecutionSpace,
-                  class SourceSpace>
-        struct DeepCopy<
-            SourceSpace,
-            Kokkos::LogicalMemorySpace<BaseSpace, DefaultExecutionSpace, Namer,
-                                       SharesAccessSemanticsWithBase>,
-            ExecutionSpace> {
-          DeepCopy(void* dst, void* src, size_t n) {
-            DeepCopy<SourceSpace, BaseSpace, ExecutionSpace>(dst, src, n);
-          }
-          DeepCopy(const ExecutionSpace& exec, void* dst, void* src, size_t n) {
-            DeepCopy<SourceSpace, BaseSpace, ExecutionSpace>(exec, dst, src, n);
-          }
-        };
+template <class Namer, class BaseSpace, class DefaultExecutionSpace,
+          bool SharesAccessSemanticsWithBase, class ExecutionSpace,
+          class SourceSpace>
+struct DeepCopy<
+    SourceSpace,
+    Kokkos::LogicalMemorySpace<BaseSpace, DefaultExecutionSpace, Namer,
+                               SharesAccessSemanticsWithBase>,
+    ExecutionSpace> {
+  DeepCopy(void* dst, void* src, size_t n) {
+    DeepCopy<SourceSpace, BaseSpace, ExecutionSpace>(dst, src, n);
+  }
+  DeepCopy(const ExecutionSpace& exec, void* dst, void* src, size_t n) {
+    DeepCopy<SourceSpace, BaseSpace, ExecutionSpace>(exec, dst, src, n);
+  }
+};
 
-        template <class Namer, class BaseSpace, class DefaultExecutionSpace,
-                  bool SharesAccessSemanticsWithBase, class ExecutionSpace,
-                  class DestinationSpace>
-        struct DeepCopy<
-            Kokkos::LogicalMemorySpace<BaseSpace, DefaultExecutionSpace, Namer,
-                                       SharesAccessSemanticsWithBase>,
-            DestinationSpace, ExecutionSpace> {
-          DeepCopy(void* dst, void* src, size_t n) {
-            DeepCopy<BaseSpace, DestinationSpace, ExecutionSpace>(dst, src, n);
-          }
-          DeepCopy(const ExecutionSpace& exec, void* dst, void* src, size_t n) {
-            DeepCopy<BaseSpace, DestinationSpace, ExecutionSpace>(exec, dst,
-                                                                  src, n);
-          }
-        };
-        }  // namespace Impl
+template <class Namer, class BaseSpace, class DefaultExecutionSpace,
+          bool SharesAccessSemanticsWithBase, class ExecutionSpace,
+          class DestinationSpace>
+struct DeepCopy<
+    Kokkos::LogicalMemorySpace<BaseSpace, DefaultExecutionSpace, Namer,
+                               SharesAccessSemanticsWithBase>,
+    DestinationSpace, ExecutionSpace> {
+  DeepCopy(void* dst, void* src, size_t n) {
+    DeepCopy<BaseSpace, DestinationSpace, ExecutionSpace>(dst, src, n);
+  }
+  DeepCopy(const ExecutionSpace& exec, void* dst, void* src, size_t n) {
+    DeepCopy<BaseSpace, DestinationSpace, ExecutionSpace>(exec, dst, src, n);
+  }
+};
+}  // namespace Impl
 
-        }  // namespace Kokkos
+
+namespace Experimental {
+namespace FakeGPU {
+enum logical_space_enum {
+  gpu,
+  cpu,
+  nonkokkos
+};
+
+extern logical_space_enum active_space;
+
+struct StartGPURegion {
+  static void exec() { active_space = logical_space_enum::gpu; }
+};
+struct StartCPURegion {
+  static void exec() { active_space = logical_space_enum::cpu; }
+};
+
+struct EndKokkosRegion {
+  static void exec() { active_space = logical_space_enum::nonkokkos; }
+};
+
+struct FakeGPUNamer {
+  static const char* get_name () { return "FakeGPU"; }
+};
+struct FakeCPUNamer {
+  static const char* get_name () { return "FakeCPU"; }
+};
+
+struct FakeGPUMemoryNamer {
+  static const char* get_name() { return "FakeGPUMemory"; }
+};
+
+struct FakeCPUMemoryNamer {
+  static const char* get_name() { return "FakeCPUMemory"; }
+};
+
+using fake_gpu_memory_space = Kokkos::LogicalMemorySpace<Kokkos::HostSpace, void, FakeGPUMemoryNamer, false>;
+using fake_cpu_memory_space = Kokkos::LogicalMemorySpace<Kokkos::HostSpace, void, FakeCPUMemoryNamer, false>;
+
+using fake_gpu_space = Kokkos::LogicalExecutionSpace<Kokkos::Serial, fake_gpu_memory_space, FakeGPUNamer, StartGPURegion, EndKokkosRegion>;
+using fake_cpu_space = Kokkos::LogicalExecutionSpace<Kokkos::Serial, fake_cpu_memory_space, FakeCPUNamer, StartCPURegion, EndKokkosRegion>;
+
+
+
+} // Experimental
+} // FakeGPU
+
+namespace Impl {
+template <typename ValueType, typename AliasType>
+struct CheckedFetcher {
+  const ValueType* m_ptr;
+  int m_offset;
+
+  // Deference operator pulls through texture object and returns by value
+  template <typename iType>
+  KOKKOS_INLINE_FUNCTION ValueType operator[](const iType& i) const {
+    return m_ptr[i];
+  }
+
+  // Pointer to referenced memory
+  KOKKOS_INLINE_FUNCTION
+  operator const ValueType*() const { return m_ptr; }
+
+  KOKKOS_INLINE_FUNCTION
+  CheckedFetcher() : m_ptr(), m_offset() {}
+
+  KOKKOS_DEFAULTED_FUNCTION
+  ~CheckedFetcher() = default;
+
+  KOKKOS_INLINE_FUNCTION
+  CheckedFetcher(const CheckedFetcher& rhs)
+      : m_ptr(rhs.m_ptr), m_offset(rhs.m_offset) {}
+
+  KOKKOS_INLINE_FUNCTION
+  CheckedFetcher(CheckedFetcher&& rhs)
+      : m_ptr(rhs.m_ptr), m_offset(rhs.m_offset) {}
+
+  KOKKOS_INLINE_FUNCTION
+  CheckedFetcher& operator=(const CheckedFetcher& rhs) {
+    m_ptr    = rhs.m_ptr;
+    m_offset = rhs.m_offset;
+    return *this;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  CheckedFetcher& operator=(CheckedFetcher&& rhs) {
+    m_ptr    = rhs.m_ptr;
+    m_offset = rhs.m_offset;
+    return *this;
+  }
+
+  // Texture object spans the entire allocation.
+  // This handle may view a subset of the allocation, so an offset is required.
+  template <class CudaMemorySpace>
+  inline explicit CheckedFetcher(
+      const ValueType* const arg_ptr,
+      Kokkos::Impl::SharedAllocationRecord<CudaMemorySpace, void>* record)
+      :
+        m_ptr(arg_ptr),
+        m_offset(record->attach_texture_object_offset(
+            reinterpret_cast<const AliasType*>(arg_ptr))) {}
+
+  // Texture object spans the entire allocation.
+  // This handle may view a subset of the allocation, so an offset is required.
+  KOKKOS_INLINE_FUNCTION
+  CheckedFetcher(const CheckedFetcher& rhs, size_t offset)
+      :
+        m_ptr(rhs.m_ptr + offset),
+        m_offset(offset + rhs.m_offset) {}
+};
+
+template <class Traits>
+class ViewDataHandle<
+    Traits, typename std::enable_if<
+                // Is Cuda memory space
+                std::is_same<typename Traits::memory_space,
+                              Kokkos::Experimental::FakeGPU::fake_gpu_memory_space>::value
+                >::type> {
+ public:
+  using track_type = Kokkos::Impl::SharedAllocationTracker;
+
+  using value_type  = typename Traits::const_value_type;
+  using return_type = typename Traits::const_value_type;  // NOT a reference
+
+  using alias_type = typename std::conditional<
+      (sizeof(value_type) == 4), int,
+      typename std::conditional<
+          (sizeof(value_type) == 8), std::int64_t,
+          typename std::conditional<(sizeof(value_type) == 16), __int128,
+                                    void>::type>::type>::type;
+
+  using handle_type = CheckedFetcher<value_type, alias_type>;
+
+  KOKKOS_INLINE_FUNCTION
+  static handle_type const& assign(handle_type const& arg_handle,
+                                   track_type const& /* arg_tracker */) {
+    return arg_handle;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  static handle_type const assign(handle_type const& arg_handle,
+                                  size_t offset) {
+    return handle_type(arg_handle, offset);
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  static handle_type assign(value_type* arg_data_ptr,
+                            track_type const& arg_tracker) {
+    if (arg_data_ptr == nullptr) return handle_type();
+
+#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
+    // Assignment of texture = non-texture requires creation of a texture object
+    // which can only occur on the host.  In addition, 'get_record' is only
+    // valid if called in a host execution space
+
+    using memory_space = typename Traits::memory_space;
+    using record = typename Impl::SharedAllocationRecord<memory_space, void>;
+
+    record* const r = arg_tracker.template get_record<memory_space>();
+
+    if (0 == r) {
+      Kokkos::abort(
+          "Error inherited from CUDA I have no idea what this code is doing"
+          );
+    }
+    return handle_type(arg_data_ptr, r);
+
+#else
+    (void)arg_tracker;
+    Kokkos::Impl::cuda_abort(
+        "Cannot create this object from within a Cuda kernel");
+    return handle_type();
+#endif
+  }
+};
+
+}  // namespace Impl
+
+}  // namespace Kokkos
