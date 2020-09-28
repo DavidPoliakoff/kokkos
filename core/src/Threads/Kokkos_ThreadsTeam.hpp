@@ -808,8 +808,10 @@ class TeamPolicyInternal<Kokkos::Threads, Properties...>
     if (concurrency == 0) concurrency = 1;
 
     if (m_chunk_size > 0) {
-      if (!Impl::is_integral_power_of_two(m_chunk_size))
-        Kokkos::abort("TeamPolicy blocking granularity must be power of two");
+      if (!Impl::is_integral_power_of_two(m_chunk_size)) {
+        std::string error_message = "TeamPolicy blocking granularity must be power of two: " + std::to_string(m_chunk_size);
+        Kokkos::abort(error_message.c_str());
+      }
     }
 
     int new_chunk_size = 1;
