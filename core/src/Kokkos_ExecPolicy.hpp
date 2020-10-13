@@ -358,6 +358,17 @@ class TeamPolicyInternal : public Impl::PolicyTraits<Properties...> {
    */
   KOKKOS_INLINE_FUNCTION int team_size() const;
 
+  /** \brief Whether the policy has an automatically determined team size
+   */
+  inline bool impl_auto_team_size() const;
+  /** \brief Whether the policy has an automatically determined vector length
+   */
+  inline bool impl_auto_vector_length() const;
+
+  static int vector_length_max();
+
+  KOKKOS_INLINE_FUNCTION int impl_vector_length() const;
+
   inline typename traits::index_type chunk_size() const;
 
   inline TeamPolicyInternal& set_chunk_size(int chunk_size);
@@ -554,6 +565,16 @@ class TeamPolicy
       : internal_policy(space_, league_size_request, Kokkos::AUTO(),
                         vector_length_request) {}
 
+  TeamPolicy(const typename traits::execution_space& space_,
+             int league_size_request, const Kokkos::AUTO_t&,
+             const Kokkos::AUTO_t&)
+      : internal_policy(space_, league_size_request, Kokkos::AUTO(),
+                        Kokkos::AUTO()) {}
+  TeamPolicy(const typename traits::execution_space& space_,
+             int league_size_request, const int team_size_request,
+             const Kokkos::AUTO_t&)
+      : internal_policy(space_, league_size_request, team_size_request,
+                        Kokkos::AUTO()) {}
   /** \brief  Construct policy with the default instance of the execution space
    */
   TeamPolicy(int league_size_request, int team_size_request,
@@ -565,6 +586,14 @@ class TeamPolicy
              int vector_length_request = 1)
       : internal_policy(league_size_request, Kokkos::AUTO(),
                         vector_length_request) {}
+
+  TeamPolicy(int league_size_request, const Kokkos::AUTO_t&,
+             const Kokkos::AUTO_t&)
+      : internal_policy(league_size_request, Kokkos::AUTO(), Kokkos::AUTO()) {}
+  TeamPolicy(int league_size_request, const int team_size_request,
+             const Kokkos::AUTO_t&)
+      : internal_policy(league_size_request, team_size_request,
+                        Kokkos::AUTO()) {}
 
   template <class... OtherProperties>
   TeamPolicy(const TeamPolicy<OtherProperties...> p) : internal_policy(p) {}
@@ -906,5 +935,40 @@ require(const PolicyType p, WorkItemProperty::ImplWorkItemProperty<P>) {
       WorkItemProperty::ImplWorkItemProperty<P>, PolicyType>::policy_out_t(p);
 }
 }  // namespace Experimental
+
+namespace Impl {
+
+template <class PatternTag, class... Args>
+struct PatternImplSpecializationFromTag;
+
+template <class... Args>
+struct PatternImplSpecializationFromTag<Kokkos::ParallelForTag, Args...>
+    : identity<ParallelFor<Args...>> {};
+
+template <class... Args>
+struct PatternImplSpecializationFromTag<Kokkos::ParallelReduceTag, Args...>
+    : identity<ParallelReduce<Args...>> {};
+
+template <class... Args>
+struct PatternImplSpecializationFromTag<Kokkos::ParallelScanTag, Args...>
+    : identity<ParallelScan<Args...>> {};
+
+template <class PatternImpl>
+struct PatternTagFromImplSpecialization;
+
+template <class... Args>
+struct PatternTagFromImplSpecialization<ParallelFor<Args...>>
+    : identity<ParallelForTag> {};
+
+template <class... Args>
+struct PatternTagFromImplSpecialization<ParallelReduce<Args...>>
+    : identity<ParallelReduceTag> {};
+
+template <class... Args>
+struct PatternTagFromImplSpecialization<ParallelScan<Args...>>
+    : identity<ParallelScanTag> {};
+
+}  // end namespace Impl
+
 }  // namespace Kokkos
 #endif /* #define KOKKOS_EXECPOLICY_HPP */

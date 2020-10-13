@@ -106,20 +106,7 @@ class HBWSpace {
   /// Every memory space has a default execution space.  This is
   /// useful for things like initializing a View (which happens in
   /// parallel using the View's default execution space).
-#if defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMP)
-  using execution_space = Kokkos::OpenMP;
-#elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_THREADS)
-  using execution_space = Kokkos::Threads;
-#elif defined(KOKKOS_ENABLE_OPENMP)
-  using execution_space = Kokkos::OpenMP;
-#elif defined(KOKKOS_ENABLE_THREADS)
-  using execution_space = Kokkos::Threads;
-#elif defined(KOKKOS_ENABLE_SERIAL)
-  using execution_space = Kokkos::Serial;
-#else
-#error \
-    "At least one of the following host execution spaces must be defined: Kokkos::OpenMP, Kokkos::Threads, or Kokkos::Serial.  You might be seeing this message if you disabled the Kokkos::Serial device explicitly using the Kokkos_ENABLE_Serial:BOOL=OFF CMake option, but did not enable any of the other host execution space devices."
-#endif
+  using execution_space = Kokkos::DefaultHostExecutionSpace;
 
   //! This memory space preferred device_type
   using device_type = Kokkos::Device<execution_space, memory_space>;
@@ -185,7 +172,7 @@ class SharedAllocationRecord<Kokkos::Experimental::HBWSpace, void>
 
   static void deallocate(RecordBase*);
 
-#ifdef KOKKOS_DEBUG
+#ifdef KOKKOS_ENABLE_DEBUG
   /**\brief  Root record for tracked allocations from this HBWSpace instance */
   static RecordBase s_root_record;
 #endif
@@ -257,16 +244,16 @@ static_assert(
 
 template <>
 struct MemorySpaceAccess<Kokkos::HostSpace, Kokkos::Experimental::HBWSpace> {
-  enum { assignable = true };
-  enum { accessible = true };
-  enum { deepcopy = true };
+  enum : bool { assignable = true };
+  enum : bool { accessible = true };
+  enum : bool { deepcopy = true };
 };
 
 template <>
 struct MemorySpaceAccess<Kokkos::Experimental::HBWSpace, Kokkos::HostSpace> {
-  enum { assignable = false };
-  enum { accessible = true };
-  enum { deepcopy = true };
+  enum : bool { assignable = false };
+  enum : bool { accessible = true };
+  enum : bool { deepcopy = true };
 };
 
 }  // namespace Impl
@@ -321,7 +308,7 @@ namespace Impl {
 template <>
 struct VerifyExecutionCanAccessMemorySpace<Kokkos::HostSpace,
                                            Kokkos::Experimental::HBWSpace> {
-  enum { value = true };
+  enum : bool { value = true };
   inline static void verify(void) {}
   inline static void verify(const void*) {}
 };
@@ -329,7 +316,7 @@ struct VerifyExecutionCanAccessMemorySpace<Kokkos::HostSpace,
 template <>
 struct VerifyExecutionCanAccessMemorySpace<Kokkos::Experimental::HBWSpace,
                                            Kokkos::HostSpace> {
-  enum { value = true };
+  enum : bool { value = true };
   inline static void verify(void) {}
   inline static void verify(const void*) {}
 };

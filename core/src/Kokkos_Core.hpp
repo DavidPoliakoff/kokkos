@@ -51,37 +51,7 @@
 #include <Kokkos_Core_fwd.hpp>
 #include <Kokkos_LogicalSpaces.hpp>
 
-#if defined(KOKKOS_ENABLE_SERIAL)
-#include <Kokkos_Serial.hpp>
-#endif
-
-#if defined(KOKKOS_ENABLE_OPENMP)
-#include <Kokkos_OpenMP.hpp>
-#endif
-
-#if defined(KOKKOS_ENABLE_OPENMPTARGET)
-#include <Kokkos_OpenMPTarget.hpp>
-#include <Kokkos_OpenMPTargetSpace.hpp>
-#endif
-
-#if defined(KOKKOS_ENABLE_HPX)
-#include <Kokkos_HPX.hpp>
-#endif
-
-#if defined(KOKKOS_ENABLE_THREADS)
-#include <Kokkos_Threads.hpp>
-#endif
-
-#if defined(KOKKOS_ENABLE_CUDA)
-#include <Kokkos_Cuda.hpp>
-#endif
-
-#if defined(KOKKOS_ENABLE_ROCM)
-#include <Kokkos_ROCm.hpp>
-#endif
-#if defined(KOKKOS_ENABLE_HIP)
-#include <Kokkos_HIP.hpp>
-#endif
+#include <KokkosCore_Config_DeclareBackend.hpp>
 
 #include <Kokkos_AnonymousSpace.hpp>
 #include <Kokkos_Pair.hpp>
@@ -92,11 +62,14 @@
 #include <Kokkos_Atomic.hpp>
 #include <Kokkos_hwloc.hpp>
 #include <Kokkos_Timer.hpp>
+#include <Kokkos_Tuners.hpp>
 #include <Kokkos_TaskScheduler.hpp>
 #include <Kokkos_Complex.hpp>
 #include <Kokkos_CopyViews.hpp>
 #include <functional>
 #include <iosfwd>
+#include <map>
+#include <memory>
 
 //----------------------------------------------------------------------------
 
@@ -119,6 +92,38 @@ struct InitArguments {
         disable_warnings{dw} {}
 };
 
+namespace Impl {
+
+/* ExecSpaceManager - Responsible for initializing all of the registered
+ * backends. Backends are registered using the register_space_initializer()
+ * function which should be called from a global context so that it is called
+ * prior to initialize_spaces() which is called from Kokkos::initialize()
+ */
+class ExecSpaceManager {
+  std::map<std::string, std::unique_ptr<ExecSpaceInitializerBase>>
+      exec_space_factory_list;
+
+ public:
+  ExecSpaceManager() = default;
+
+  void register_space_factory(std::string name,
+                              std::unique_ptr<ExecSpaceInitializerBase> ptr);
+  void initialize_spaces(const Kokkos::InitArguments& args);
+  void finalize_spaces(const bool all_spaces);
+  void static_fence();
+  void print_configuration(std::ostream& msg, const bool detail);
+  static ExecSpaceManager& get_instance();
+};
+
+template <class SpaceInitializerType>
+int initialize_space_factory(std::string name) {
+  auto space_ptr = std::make_unique<SpaceInitializerType>();
+  ExecSpaceManager::get_instance().register_space_factory(name,
+                                                          std::move(space_ptr));
+  return 1;
+}
+
+}  // namespace Impl
 void initialize(int& narg, char* arg[]);
 
 void initialize(InitArguments args = InitArguments());
@@ -265,6 +270,8 @@ class ScopeGuard {
 // implementation of the RAII wrapper is using Kokkos::single.
 #include <Kokkos_AcquireUniqueTokenImpl.hpp>
 
+// Specializations requires after core definitions
+#include <KokkosCore_Config_PostInclude.hpp>
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 

@@ -202,9 +202,9 @@ KOKKOS_INLINE_FUNCTION T atomic_fetch_oper(
   } oldval, assume, newval;
 
   oldval.t = *dest;
-  if (check_early_exit(Oper{}, oldval.t, val)) return oldval.t;
 
   do {
+    if (check_early_exit(Oper{}, oldval.t, val)) return oldval.t;
     assume.i = oldval.i;
     newval.t = op.apply(assume.t, val);
     oldval.i = Kokkos::atomic_compare_exchange((unsigned long long int*)dest,
@@ -227,9 +227,9 @@ KOKKOS_INLINE_FUNCTION T atomic_oper_fetch(
   } oldval, assume, newval;
 
   oldval.t = *dest;
-  if (check_early_exit(Oper{}, oldval.t, val)) return oldval.t;
 
   do {
+    if (check_early_exit(Oper{}, oldval.t, val)) return oldval.t;
     assume.i = oldval.i;
     newval.t = op.apply(assume.t, val);
     oldval.i = Kokkos::atomic_compare_exchange((unsigned long long int*)dest,
@@ -250,9 +250,9 @@ KOKKOS_INLINE_FUNCTION T atomic_fetch_oper(
   } oldval, assume, newval;
 
   oldval.t = *dest;
-  if (check_early_exit(Oper{}, oldval.t, val)) return oldval.t;
 
   do {
+    if (check_early_exit(Oper{}, oldval.t, val)) return oldval.t;
     assume.i = oldval.i;
     newval.t = op.apply(assume.t, val);
     oldval.i = Kokkos::atomic_compare_exchange((int*)dest, assume.i, newval.i);
@@ -272,9 +272,9 @@ KOKKOS_INLINE_FUNCTION T atomic_oper_fetch(
   } oldval, assume, newval;
 
   oldval.t = *dest;
-  if (check_early_exit(Oper{}, oldval.t, val)) return oldval.t;
 
   do {
+    if (check_early_exit(Oper{}, oldval.t, val)) return oldval.t;
     assume.i = oldval.i;
     newval.t = op.apply(assume.t, val);
     oldval.i = Kokkos::atomic_compare_exchange((int*)dest, assume.i, newval.i);
@@ -346,6 +346,13 @@ KOKKOS_INLINE_FUNCTION T atomic_fetch_oper(
     done_active = __ballot(done);
   }
   return return_val;
+#elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_SYCL)
+  // FIXME_SYCL
+  std::abort();
+  (void)op;
+  (void)dest;
+  (void)val;
+  return 0;
 #endif
 }
 
@@ -418,6 +425,13 @@ atomic_oper_fetch(const Oper& op, volatile T* const dest,
     done_active = __ballot(done);
   }
   return return_val;
+#elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_SYCL)
+  // FIXME_SYCL
+  std::abort();
+  (void)op;
+  (void)dest;
+  (void)val;
+  return 0;
 #endif
 }
 

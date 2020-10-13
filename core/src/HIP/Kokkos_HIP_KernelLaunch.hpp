@@ -74,18 +74,17 @@ namespace Kokkos {
 namespace Experimental {
 namespace Impl {
 
-void *hip_resize_scratch_space(std::int64_t bytes, bool force_shrink = false);
-
 template <typename DriverType>
 __global__ static void hip_parallel_launch_constant_memory() {
-// cannot use global constants in HCC
-#ifdef __HCC__
-  __device__ __constant__ unsigned long kokkos_impl_hip_constant_memory_buffer
-      [Kokkos::Experimental::Impl::HIPTraits::ConstantMemoryUsage /
-       sizeof(unsigned long)];
-#endif
+  const DriverType &driver = *(reinterpret_cast<const DriverType *>(
+      kokkos_impl_hip_constant_memory_buffer));
+  driver();
+}
 
-  const DriverType *const driver = (reinterpret_cast<const DriverType *>(
+template <typename DriverType, unsigned int maxTperB, unsigned int minBperSM>
+__global__ __launch_bounds__(
+    maxTperB, minBperSM) static void hip_parallel_launch_constant_memory() {
+  const DriverType &driver = *(reinterpret_cast<const DriverType *>(
       kokkos_impl_hip_constant_memory_buffer));
 
   driver->operator()();
@@ -169,12 +168,15 @@ struct HIPParallelLaunch<
   }
 
   static hipFuncAttributes get_hip_func_attributes() {
-    hipFuncAttributes attr;
-    hipFuncGetAttributes(
-        &attr,
-        reinterpret_cast<void const *>(
-            hip_parallel_launch_local_memory<DriverType, MaxThreadsPerBlock,
-                                             MinBlocksPerSM>));
+    static hipFuncAttributes attr = []() {
+      hipFuncAttributes attr;
+      HIP_SAFE_CALL(hipFuncGetAttributes(
+          &attr,
+          reinterpret_cast<void const *>(
+              hip_parallel_launch_local_memory<DriverType, MaxThreadsPerBlock,
+                                               MinBlocksPerSM>)));
+      return attr;
+    }();
     return attr;
   }
 };
@@ -212,10 +214,13 @@ struct HIPParallelLaunch<DriverType, Kokkos::LaunchBounds<0, 0>,
   }
 
   static hipFuncAttributes get_hip_func_attributes() {
-    hipFuncAttributes attr;
-    hipFuncGetAttributes(
-        &attr, reinterpret_cast<void *>(
-                   &hip_parallel_launch_local_memory<DriverType, 1024, 1>));
+    static hipFuncAttributes attr = []() {
+      hipFuncAttributes attr;
+      HIP_SAFE_CALL(hipFuncGetAttributes(
+          &attr, reinterpret_cast<void const *>(
+                     hip_parallel_launch_local_memory<DriverType, 1024, 1>)));
+      return attr;
+    }();
     return attr;
   }
 };
