@@ -56,6 +56,17 @@
 
 namespace Kokkos {
 
+namespace Impl {
+template<typename Traits>
+struct HostViewCalculator {
+#ifndef KOKKOS_ADVANCED_FORCE_DUAL_VIEW_TWO_ALLOCATIONS
+using host_mirror_space = typename Traits::host_mirror_space;
+template<typename DeviceViewType>
+using mirror_type = typename DeviceViewType::HostMirror;
+#else
+#endif
+};
+} // namespace Impl
 /* \class DualView
  * \brief Container to manage mirroring a Kokkos::View that lives
  *   in device memory with a Kokkos::View that lives in host memory.
@@ -101,16 +112,16 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
   //! \name Typedefs for device types and various Kokkos::View specializations.
   //@{
   using traits = ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type>;
-
+  using host_view_calculator = Impl::HostViewCalculator<traits>;
   //! The Kokkos Host Device type;
-  using host_mirror_space = typename traits::host_mirror_space;
+  using host_mirror_space = typename host_view_calculator::host_mirror_space;
 
   //! The type of a Kokkos::View on the device.
   using t_dev = View<typename traits::data_type, Arg1Type, Arg2Type, Arg3Type>;
 
   /// \typedef t_host
   /// \brief The type of a Kokkos::View host mirror of \c t_dev.
-  using t_host = typename t_dev::HostMirror;
+  using t_host = typename host_view_calculator::mirror_type<t_dev>;
 
   //! The type of a const View on the device.
   //! The type of a Kokkos::View on the device.
@@ -119,7 +130,7 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
 
   /// \typedef t_host_const
   /// \brief The type of a const View host mirror of \c t_dev_const.
-  using t_host_const = typename t_dev_const::HostMirror;
+  using t_host_const = typename host_view_calculator::mirror_type<t_dev_const>;
 
   //! The type of a const, random-access View on the device.
   using t_dev_const_randomread =
@@ -130,7 +141,7 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
   /// \typedef t_host_const_randomread
   /// \brief The type of a const, random-access View host mirror of
   ///   \c t_dev_const_randomread.
-  using t_host_const_randomread = typename t_dev_const_randomread::HostMirror;
+  using t_host_const_randomread = typename host_view_calculator::mirror_type<t_dev_const_randomread>;
 
   //! The type of an unmanaged View on the device.
   using t_dev_um =
