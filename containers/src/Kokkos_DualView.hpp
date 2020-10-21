@@ -68,9 +68,11 @@ using memory_space = typename Traits::device_type::memory_space;
 static_assert(!std::is_same<memory_space,Kokkos::HostSpace>::value, "Can't make a MirrorView from HostSpace when forcing two allocations");
 using host_mirror_space = Kokkos::HostSpace;
 template<typename DeviceViewType>
+using DeviceViewTraits = typename DeviceViewType::traits;
+template<typename DeviceViewType>
 using mirror_type = 
-  typename Kokkos::View<typename Traits::data_type, typename Traits::array_layout,
-           Kokkos::HostSpace, typename Traits::memory_traits>;
+  typename Kokkos::View<typename DeviceViewTraits<DeviceViewType>::data_type, typename DeviceViewTraits<DeviceViewType>::array_layout,
+           Kokkos::HostSpace, typename DeviceViewTraits<DeviceViewType>::memory_traits>;
 #endif
 };
 } // namespace Impl
