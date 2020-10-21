@@ -8,6 +8,7 @@
 #include <impl/Kokkos_SharedAlloc.hpp>
 #include <impl/Kokkos_Profiling_Interface.hpp>
 #include <iostream>
+#include <cstring>
 namespace Kokkos {
 
 struct DefaultExecutionSpaceNamer {
@@ -177,7 +178,7 @@ namespace Tools {
 	namespace Experimental {
 template <class BaseSpace, class... SpaceTraits>
 struct DeviceTypeTraits<Kokkos::LogicalExecutionSpace<BaseSpace,SpaceTraits...>> {
-  static constexpr DeviceType id = DeviceType::Logical;
+  static constexpr DeviceType id = DeviceType::Unknown;
 };
   
 	}}

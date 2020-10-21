@@ -56,16 +56,15 @@ struct MPrologue {
 struct MEpilogue {
   static void exec(){};
 };
-
+void debug_print(const Kokkos_Profiling_SpaceHandle hand, const char* name,
+   const void* ptr, const size_t size) {
+  std::cout << hand.name << ", [" << name << "," << ptr << "] "
+            << size << std::endl;
+}
 int main() {
   Kokkos::initialize();
   {
-    Kokkos::Tools::Experimental::set_allocate_data_callback(
-        [](const Kokkos::Tools::SpaceHandle hand, const char* name,
-           const void* const ptr, const size_t size) {
-          std::cout << hand.name << ", [" << name << "," << ptr << "] "
-                    << size << std::endl;
-        });
+    Kokkos::Tools::Experimental::set_allocate_data_callback(debug_print);
     using fake_exec_space = Kokkos::LogicalExecutionSpace<Kokkos::Serial>;
     using multi_fake_exec_space =
         Kokkos::LogicalExecutionSpace<fake_exec_space>;
