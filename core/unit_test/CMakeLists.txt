@@ -476,6 +476,13 @@ KOKKOS_ADD_ADVANCED_TEST( UnitTest_PushFinalizeHook_terminate
         tools/TestTuning.cpp
     )
   endif()
+
+  KOKKOS_ADD_EXECUTABLE_AND_TEST(
+    UnitTest_LogicalMemorySpaces
+    SOURCES
+      tools/TestLogicalMemorySpaces.cpp
+  )
+
   if(KOKKOS_ENABLE_LIBDL)
 
     add_library(
