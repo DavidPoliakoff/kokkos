@@ -496,7 +496,7 @@ ENDIF()
 #Let's just always print things
 MESSAGE(STATUS "Built-in Execution Spaces:")
 
-FOREACH (_BACKEND Cuda OpenMPTarget HIP SYCL)
+FOREACH (_BACKEND Cuda OpenMPTarget HIP SYCL FAKEGPU)
   STRING(TOUPPER ${_BACKEND} UC_BACKEND)
   IF(KOKKOS_ENABLE_${UC_BACKEND})
     IF(_DEVICE_PARALLEL)

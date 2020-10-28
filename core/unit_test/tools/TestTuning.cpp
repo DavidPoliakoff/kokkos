@@ -188,6 +188,16 @@ int main() {
     expectedNumberOfContextVariables = 2;
     Kokkos::Tools::Experimental::request_output_values(innerContext, 1,
                                                        tuningValues);
+    constexpr const int data_size = 100;
+    Kokkos::Tools::Experimental::set_begin_parallel_for_callback([](const char* name, const uint32_t devid, uint64_t* kid) {
+         std::cout << "Kernel "<<name<<" running on "<<devid<<std::endl;
+		    });
+    Kokkos::parallel_for("test_serial", Kokkos::RangePolicy<Kokkos::Serial>(0,data_size), KOKKOS_LAMBDA(int i){
+      
+		    });
+    Kokkos::parallel_for("test_fakegpu", Kokkos::RangePolicy<Kokkos::Experimental::FakeGPU>(0,data_size), KOKKOS_LAMBDA(int i){
+      
+		    });
   }  // end Kokkos block
 
   Kokkos::finalize();

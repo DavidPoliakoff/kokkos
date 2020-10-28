@@ -55,7 +55,7 @@
 #include <iosfwd>
 #include <Kokkos_Core_fwd.hpp>
 #include <Kokkos_Parallel.hpp>
-#include <Kokkos_TaskScheduler.hpp>
+//#include <Kokkos_TaskScheduler.hpp>
 #include <Kokkos_Layout.hpp>
 #include <Kokkos_HostSpace.hpp>
 #include <Kokkos_ScratchSpace.hpp>
@@ -160,18 +160,10 @@ class FakeGPU {
   //--------------------------------------------------------------------------
 };
 
-namespace Tools {
-namespace Experimental {
-template <>
-struct DeviceTypeTraits<FakeGPU> {
-  static constexpr DeviceType id = DeviceType::Unknown;
-};
-}  // namespace Experimental
-}  // namespace Tools
 
 namespace Impl {
 
-class FakeGPUSpaceInitializer : public ExecSpaceInitializerBase {
+class FakeGPUSpaceInitializer : public Kokkos::Impl::ExecSpaceInitializerBase {
  public:
   FakeGPUSpaceInitializer()  = default;
   ~FakeGPUSpaceInitializer() = default;
@@ -183,6 +175,14 @@ class FakeGPUSpaceInitializer : public ExecSpaceInitializerBase {
 
 }  // namespace Impl
 }  // namespace Experimental
+namespace Tools {
+namespace Experimental {
+template <>
+struct DeviceTypeTraits<Kokkos::Experimental::FakeGPU> {
+  static constexpr DeviceType id = DeviceType::Unknown;
+};
+}  // namespace Experimental
+}  // namespace Tools
 }  // namespace Kokkos
 
 /*--------------------------------------------------------------------------*/
@@ -214,6 +214,7 @@ struct VerifyExecutionCanAccessMemorySpace<
 /*--------------------------------------------------------------------------*/
 
 namespace Kokkos {
+	namespace Experimental {
 namespace Impl {
 
 // Resize thread team data scratch memory
@@ -222,9 +223,10 @@ void fake_gpu_resize_thread_team_data(size_t pool_reduce_bytes,
                                     size_t team_shared_bytes,
                                     size_t thread_local_bytes);
 
-HostThreadTeamData* fake_gpu_get_thread_team_data();
+Kokkos::Impl::HostThreadTeamData* fake_gpu_get_thread_team_data();
 
 } /* namespace Impl */
+} /* namespace Experimental */
 } /* namespace Kokkos */
 
 namespace Kokkos {
@@ -413,7 +415,7 @@ class TeamPolicyInternal<Kokkos::Experimental::FakeGPU, Properties...>
     return *this;
   }
 
-  using member_type = Impl::HostThreadTeamMember<Kokkos::FakeGPU>;
+  using member_type = Impl::HostThreadTeamMember<Kokkos::Experimental::FakeGPU>;
 };
 } /* namespace Impl */
 } /* namespace Kokkos */
@@ -520,10 +522,10 @@ class ParallelReduce<FunctorType, Kokkos::RangePolicy<Traits...>, ReducerType,
     const size_t team_shared_size  = 0;  // Never shrinks
     const size_t thread_local_size = 0;  // Never shrinks
 
-    fake_gpu_resize_thread_team_data(pool_reduce_size, team_reduce_size,
+    Kokkos::Experimental::Impl::fake_gpu_resize_thread_team_data(pool_reduce_size, team_reduce_size,
                                    team_shared_size, thread_local_size);
 
-    HostThreadTeamData& data = *fake_gpu_get_thread_team_data();
+    HostThreadTeamData& data = *Kokkos::Experimental::Impl::fake_gpu_get_thread_team_data();
 
     pointer_type ptr =
         m_result_ptr ? m_result_ptr : pointer_type(data.pool_reduce_local());
@@ -612,10 +614,10 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
     const size_t team_shared_size  = 0;  // Never shrinks
     const size_t thread_local_size = 0;  // Never shrinks
 
-    fake_gpu_resize_thread_team_data(pool_reduce_size, team_reduce_size,
+    Kokkos::Experimental::Impl::fake_gpu_resize_thread_team_data(pool_reduce_size, team_reduce_size,
                                    team_shared_size, thread_local_size);
 
-    HostThreadTeamData& data = *fake_gpu_get_thread_team_data();
+    HostThreadTeamData& data = *Kokkos::Experimental::Impl::fake_gpu_get_thread_team_data();
 
     reference_type update =
         ValueInit::init(m_functor, pointer_type(data.pool_reduce_local()));
@@ -673,10 +675,10 @@ class ParallelScanWithTotal<FunctorType, Kokkos::RangePolicy<Traits...>,
     const size_t team_shared_size  = 0;  // Never shrinks
     const size_t thread_local_size = 0;  // Never shrinks
 
-    fake_gpu_resize_thread_team_data(pool_reduce_size, team_reduce_size,
+    Kokkos::Experimental::Impl::fake_gpu_resize_thread_team_data(pool_reduce_size, team_reduce_size,
                                    team_shared_size, thread_local_size);
 
-    HostThreadTeamData& data = *fake_gpu_get_thread_team_data();
+    HostThreadTeamData& data = *Kokkos::Experimental::Impl::fake_gpu_get_thread_team_data();
 
     reference_type update =
         ValueInit::init(m_functor, pointer_type(data.pool_reduce_local()));
@@ -706,7 +708,7 @@ namespace Impl {
 
 template <class FunctorType, class... Traits>
 class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
-                  Kokkos::FakeGPU> {
+                  Kokkos::Experimental::FakeGPU> {
  private:
   using MDRangePolicy = Kokkos::MDRangePolicy<Traits...>;
   using Policy        = typename MDRangePolicy::impl_range_policy;
@@ -737,7 +739,7 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
 
 template <class FunctorType, class ReducerType, class... Traits>
 class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
-                     Kokkos::FakeGPU> {
+                     Kokkos::Experimental::FakeGPU> {
  private:
   using MDRangePolicy = Kokkos::MDRangePolicy<Traits...>;
   using Policy        = typename MDRangePolicy::impl_range_policy;
@@ -786,10 +788,10 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
     const size_t team_shared_size  = 0;  // Never shrinks
     const size_t thread_local_size = 0;  // Never shrinks
 
-    fake_gpu_resize_thread_team_data(pool_reduce_size, team_reduce_size,
+    Kokkos::Experimental::Impl::fake_gpu_resize_thread_team_data(pool_reduce_size, team_reduce_size,
                                    team_shared_size, thread_local_size);
 
-    HostThreadTeamData& data = *fake_gpu_get_thread_team_data();
+    HostThreadTeamData& data = *Kokkos::Experimental::Impl::fake_gpu_get_thread_team_data();
 
     pointer_type ptr =
         m_result_ptr ? m_result_ptr : pointer_type(data.pool_reduce_local());
@@ -850,11 +852,11 @@ namespace Impl {
 
 template <class FunctorType, class... Properties>
 class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
-                  Kokkos::FakeGPU> {
+                  Kokkos::Experimental::FakeGPU> {
  private:
   enum { TEAM_REDUCE_SIZE = 512 };
 
-  using Policy = TeamPolicyInternal<Kokkos::FakeGPU, Properties...>;
+  using Policy = TeamPolicyInternal<Kokkos::Experimental::FakeGPU, Properties...>;
   using Member = typename Policy::member_type;
 
   const FunctorType m_functor;
@@ -885,10 +887,10 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
     const size_t team_shared_size  = m_shared;
     const size_t thread_local_size = 0;  // Never shrinks
 
-    fake_gpu_resize_thread_team_data(pool_reduce_size, team_reduce_size,
+    Kokkos::Experimental::Impl::fake_gpu_resize_thread_team_data(pool_reduce_size, team_reduce_size,
                                    team_shared_size, thread_local_size);
 
-    HostThreadTeamData& data = *fake_gpu_get_thread_team_data();
+    HostThreadTeamData& data = *Kokkos::Experimental::Impl::fake_gpu_get_thread_team_data();
 
     this->template exec<typename Policy::work_tag>(data);
   }
@@ -904,11 +906,11 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
 
 template <class FunctorType, class ReducerType, class... Properties>
 class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
-                     ReducerType, Kokkos::FakeGPU> {
+                     ReducerType, Kokkos::Experimental::FakeGPU> {
  private:
   enum { TEAM_REDUCE_SIZE = 512 };
 
-  using Policy = TeamPolicyInternal<Kokkos::FakeGPU, Properties...>;
+  using Policy = TeamPolicyInternal<Kokkos::Experimental::FakeGPU, Properties...>;
 
   using Analysis =
       FunctorAnalysis<FunctorPatternInterface::REDUCE, Policy, FunctorType>;
@@ -962,10 +964,10 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
     const size_t team_shared_size  = m_shared;
     const size_t thread_local_size = 0;  // Never shrinks
 
-    fake_gpu_resize_thread_team_data(pool_reduce_size, team_reduce_size,
+    Kokkos::Experimental::Impl::fake_gpu_resize_thread_team_data(pool_reduce_size, team_reduce_size,
                                    team_shared_size, thread_local_size);
 
-    HostThreadTeamData& data = *fake_gpu_get_thread_team_data();
+    HostThreadTeamData& data = *Kokkos::Experimental::Impl::fake_gpu_get_thread_team_data();
 
     pointer_type ptr =
         m_result_ptr ? m_result_ptr : pointer_type(data.pool_reduce_local());
@@ -1082,7 +1084,7 @@ class UniqueToken<FakeGPU, UniqueTokenScope::Global> {
 }  // namespace Experimental
 }  // namespace Kokkos
 
-#include <impl/Kokkos_FakeGPU_Task.hpp>
+//#include <impl/Kokkos_FakeGPU_Task.hpp>
 
 #endif  // defined( KOKKOS_ENABLE_FAKEGPU )
 #endif  /* #define KOKKOS_FAKEGPU_HPP */

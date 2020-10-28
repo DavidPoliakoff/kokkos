@@ -59,6 +59,11 @@
 namespace Kokkos {
 namespace Experimental {
 namespace Impl {
+
+using Kokkos::Impl::HostThreadTeamData;
+using Kokkos::Impl::SharedAllocationRecord;
+using  Kokkos::Impl::initialize_space_factory;
+using Kokkos::Impl::init_lock_array_host_space;
 namespace {
 
 HostThreadTeamData g_fake_gpu_thread_team_data;
@@ -192,14 +197,14 @@ void FakeGPUSpaceInitializer::initialize(const InitArguments& args) {
   (void)args;
 
   // Always initialize FakeGPU if it is configure time enabled
-  Kokkos::FakeGPU::impl_initialize();
+  Kokkos::Experimental::FakeGPU::impl_initialize();
 }
 
 void FakeGPUSpaceInitializer::finalize(const bool) {
-  if (Kokkos::FakeGPU::impl_is_initialized()) Kokkos::FakeGPU::impl_finalize();
+  if (Kokkos::Experimental::FakeGPU::impl_is_initialized()) Kokkos::Experimental::FakeGPU::impl_finalize();
 }
 
-void FakeGPUSpaceInitializer::fence() { Kokkos::FakeGPU::impl_static_fence(); }
+void FakeGPUSpaceInitializer::fence() { Kokkos::Experimental::FakeGPU::impl_static_fence(); }
 
 void FakeGPUSpaceInitializer::print_configuration(std::ostream& msg,
                                                  const bool detail) {
