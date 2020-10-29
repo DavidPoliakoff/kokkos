@@ -110,6 +110,9 @@ struct TestSpaceNamer {
 struct TestSpaceNamerTwo {
   static constexpr const char* get_name() { return "YoDawg"; }
 };
+struct TestSpaceNamerThree {
+  static constexpr const char* get_name() { return "CustomAccessSpace"; }
+};
 using fake_memory_space = Kokkos::Experimental::LogicalMemorySpace<
     Kokkos::HostSpace, Kokkos::DefaultHostExecutionSpace, TestSpaceNamer, true>;
 
@@ -154,11 +157,40 @@ void test_space_allocations() {
   debug_space.deallocate("allocation_from_space", temp, 1000);
   Kokkos::Tools::Experimental::pause_tools();
 }
+template <typename Space>
+struct AccessCheckKernel {
+  Kokkos::View<double*, Space> data;
+  void operator()(const int i) const { data[i] = i; }
+};
+
+template <typename Space>
+void test_allowed_access() {
+  constexpr const int data_size = 1000;
+  Kokkos::View<double*, Space> test_view("test_view", data_size);
+  AccessCheckKernel<Space> functor{test_view};
+  Kokkos::parallel_for(
+      "access_allowed",
+      Kokkos::RangePolicy<typename Space::execution_space>(0, data_size),
+      functor);
+}
+
+using semantically_independent_logical_space =
+    Kokkos::Experimental::LogicalMemorySpace<Kokkos::HostSpace,
+                                             Kokkos::DefaultHostExecutionSpace,
+                                             TestSpaceNamerThree, false>;
 
 TEST(defaultdevicetype, logical_space_views) { test_view_construct(); }
 TEST(defaultdevicetype, logical_space_malloc) { test_malloc_free(); }
 TEST(defaultdevicetype, logical_space_alloc) { test_space_allocations(); }
 TEST(defaultdevicetype, chained_logical_spaces) { test_chained_spaces(); }
+TEST(defaultdevicetype, access_allowed) {
+  test_allowed_access<fake_memory_space>();
+}
+TEST(defaultdevicetype_DeathTest, access_forbidden) {
+  ASSERT_DEATH(
+      { test_allowed_access<semantically_independent_logical_space>(); },
+      "Kokkos::View ERROR: attempt to access inaccessible memory space");
+}
 
 // TEST(defaultdevicetype_DeathTest, stacktrace_generic_term) {
 //  ASSERT_DEATH({ test_stacktrace(true, false); },
