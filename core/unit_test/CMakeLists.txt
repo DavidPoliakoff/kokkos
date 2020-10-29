@@ -478,9 +478,9 @@ KOKKOS_ADD_ADVANCED_TEST( UnitTest_PushFinalizeHook_terminate
   endif()
 
   KOKKOS_ADD_EXECUTABLE_AND_TEST(
-    UnitTest_LogicalMemorySpaces
+    UnitTest_LogicalSpaces
     SOURCES
-      tools/TestLogicalMemorySpaces.cpp
+      tools/TestLogicalSpaces.cpp
   )
 
   if(KOKKOS_ENABLE_LIBDL)
