@@ -1,4 +1,49 @@
-#pragma once
+/*
+//@HEADER
+// ************************************************************************
+//
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
+//
+// Under the terms of Contract DE-NA0003525 with NTESS,
+// the U.S. Government retains certain rights in this software.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are
+// met:
+//
+// 1. Redistributions of source code must retain the above copyright
+// notice, this list of conditions and the following disclaimer.
+//
+// 2. Redistributions in binary form must reproduce the above copyright
+// notice, this list of conditions and the following disclaimer in the
+// documentation and/or other materials provided with the distribution.
+//
+// 3. Neither the name of the Corporation nor the names of the
+// contributors may be used to endorse or promote products derived from
+// this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
+// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
+// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//
+// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
+//
+// ************************************************************************
+//@HEADER
+*/
+
+#ifndef KOKKOS_LOGICALSPACES_HPP
+#define KOKKOS_LOGICALSPACES_HPP
 
 #include <Kokkos_Macros.hpp>
 #include <Kokkos_Core.hpp>
@@ -11,7 +56,7 @@
 #include <iostream>
 #include <cstring>
 namespace Kokkos {
-
+namespace Experimental {
 struct DefaultMemorySpaceNamer {
   static constexpr const char* get_name() {
     return "DefaultLogicalMemorySpaceName";
@@ -108,7 +153,7 @@ class LogicalMemorySpace {
  private:
   friend class Kokkos::Impl::SharedAllocationRecord<memory_space, void>;
 };
-
+}  // namespace Experimental
 }  // namespace Kokkos
 
 //----------------------------------------------------------------------------
@@ -119,9 +164,9 @@ namespace Impl {
 
 template <typename BaseSpace, typename DefaultExecutionSpace, class Namer,
           typename OtherSpace>
-struct MemorySpaceAccess<
-    Kokkos::LogicalMemorySpace<BaseSpace, DefaultExecutionSpace, Namer, true>,
-    OtherSpace> {
+struct MemorySpaceAccess<Kokkos::Experimental::LogicalMemorySpace<
+                             BaseSpace, DefaultExecutionSpace, Namer, true>,
+                         OtherSpace> {
   enum { assignable = MemorySpaceAccess<BaseSpace, OtherSpace>::assignable };
   enum { accessible = MemorySpaceAccess<BaseSpace, OtherSpace>::accessible };
   enum { deepcopy = MemorySpaceAccess<BaseSpace, OtherSpace>::deepcopy };
@@ -129,27 +174,28 @@ struct MemorySpaceAccess<
 
 template <typename BaseSpace, typename DefaultExecutionSpace, class Namer,
           typename OtherSpace>
-struct MemorySpaceAccess<
-    OtherSpace,
-    Kokkos::LogicalMemorySpace<BaseSpace, DefaultExecutionSpace, Namer, true>> {
+struct MemorySpaceAccess<OtherSpace,
+                         Kokkos::Experimental::LogicalMemorySpace<
+                             BaseSpace, DefaultExecutionSpace, Namer, true>> {
   enum { assignable = MemorySpaceAccess<OtherSpace, BaseSpace>::assignable };
   enum { accessible = MemorySpaceAccess<OtherSpace, BaseSpace>::accessible };
   enum { deepcopy = MemorySpaceAccess<OtherSpace, BaseSpace>::deepcopy };
 };
 
 template <typename BaseSpace, typename DefaultExecutionSpace, class Namer>
-struct MemorySpaceAccess<
-    Kokkos::LogicalMemorySpace<BaseSpace, DefaultExecutionSpace, Namer, true>,
-    Kokkos::LogicalMemorySpace<BaseSpace, DefaultExecutionSpace, Namer, true>> {
+struct MemorySpaceAccess<Kokkos::Experimental::LogicalMemorySpace<
+                             BaseSpace, DefaultExecutionSpace, Namer, true>,
+                         Kokkos::Experimental::LogicalMemorySpace<
+                             BaseSpace, DefaultExecutionSpace, Namer, true>> {
   enum { assignable = true };
   enum { accessible = true };
   enum { deepcopy = true };
 };
 
 template <typename BaseSpace, typename DefaultExecutionSpace, class Namer>
-struct MemorySpaceAccess<
-    Kokkos::AnonymousSpace,
-    Kokkos::LogicalMemorySpace<BaseSpace, DefaultExecutionSpace, Namer, true>> {
+struct MemorySpaceAccess<Kokkos::AnonymousSpace,
+                         Kokkos::Experimental::LogicalMemorySpace<
+                             BaseSpace, DefaultExecutionSpace, Namer, true>> {
   enum { assignable = true };
   enum { accessible = true };
   enum { deepcopy = true };
@@ -168,13 +214,12 @@ namespace Impl {
 template <class BaseSpace, class DefaultExecutionSpace, class Namer,
           bool SharesAccessSemanticsWithBase>
 class SharedAllocationRecord<
-    Kokkos::LogicalMemorySpace<BaseSpace, DefaultExecutionSpace, Namer,
-                               SharesAccessSemanticsWithBase>,
+    Kokkos::Experimental::LogicalMemorySpace<
+        BaseSpace, DefaultExecutionSpace, Namer, SharesAccessSemanticsWithBase>,
     void> : public SharedAllocationRecord<void, void> {
  private:
-  using SpaceType =
-      Kokkos::LogicalMemorySpace<BaseSpace, DefaultExecutionSpace, Namer,
-                                 SharesAccessSemanticsWithBase>;
+  using SpaceType = Kokkos::Experimental::LogicalMemorySpace<
+      BaseSpace, DefaultExecutionSpace, Namer, SharesAccessSemanticsWithBase>;
   using RecordBase = SharedAllocationRecord<void, void>;
 
   friend SpaceType;
@@ -317,12 +362,13 @@ class SharedAllocationRecord<
 #endif
 };
 #ifdef KOKKOS_DEBUG
-/**\brief  Root record for tracked allocations from this HostSpace
+/**\brief  Root record for tracked allocations from this LogicalSpace
  * instance */
-template <const char* Name, class BaseSpace, class DefaultExecutionSpace,
+template <class BaseSpace, class DefaultExecutionSpace, class Namer,
           bool SharesAccessSemanticsWithBase>
-RecordBase<BaseSpace, DefaultExecutionSpace,
-           SharesAccessSemanticsWithBase>::s_root_record;
+    RecordBase < Kokkos::Experimental::LogicalMemorySpace<
+                     BaseSpace, DefaultExecutionSpace, Namer,
+                     SharesAccessSemanticsWithBase>::s_root_record;
 #endif
 
 }  // namespace Impl
@@ -338,10 +384,10 @@ namespace Impl {
 template <class Namer, class BaseSpace, class DefaultExecutionSpace,
           bool SharesAccessSemanticsWithBase, class ExecutionSpace>
 struct DeepCopy<
-    Kokkos::LogicalMemorySpace<BaseSpace, DefaultExecutionSpace, Namer,
-                               SharesAccessSemanticsWithBase>,
-    Kokkos::LogicalMemorySpace<BaseSpace, DefaultExecutionSpace, Namer,
-                               SharesAccessSemanticsWithBase>,
+    Kokkos::Experimental::LogicalMemorySpace<
+        BaseSpace, DefaultExecutionSpace, Namer, SharesAccessSemanticsWithBase>,
+    Kokkos::Experimental::LogicalMemorySpace<
+        BaseSpace, DefaultExecutionSpace, Namer, SharesAccessSemanticsWithBase>,
     ExecutionSpace> {
   DeepCopy(void* dst, void* src, size_t n) {
     DeepCopy<BaseSpace, BaseSpace, ExecutionSpace>(dst, src, n);
@@ -356,8 +402,8 @@ template <class Namer, class BaseSpace, class DefaultExecutionSpace,
           class SourceSpace>
 struct DeepCopy<
     SourceSpace,
-    Kokkos::LogicalMemorySpace<BaseSpace, DefaultExecutionSpace, Namer,
-                               SharesAccessSemanticsWithBase>,
+    Kokkos::Experimental::LogicalMemorySpace<
+        BaseSpace, DefaultExecutionSpace, Namer, SharesAccessSemanticsWithBase>,
     ExecutionSpace> {
   DeepCopy(void* dst, void* src, size_t n) {
     DeepCopy<SourceSpace, BaseSpace, ExecutionSpace>(dst, src, n);
@@ -371,8 +417,8 @@ template <class Namer, class BaseSpace, class DefaultExecutionSpace,
           bool SharesAccessSemanticsWithBase, class ExecutionSpace,
           class DestinationSpace>
 struct DeepCopy<
-    Kokkos::LogicalMemorySpace<BaseSpace, DefaultExecutionSpace, Namer,
-                               SharesAccessSemanticsWithBase>,
+    Kokkos::Experimental::LogicalMemorySpace<
+        BaseSpace, DefaultExecutionSpace, Namer, SharesAccessSemanticsWithBase>,
     DestinationSpace, ExecutionSpace> {
   DeepCopy(void* dst, void* src, size_t n) {
     DeepCopy<BaseSpace, DestinationSpace, ExecutionSpace>(dst, src, n);
@@ -384,3 +430,4 @@ struct DeepCopy<
 }  // namespace Impl
 
 }  // namespace Kokkos
+#endif  // KOKKOS_LOGICALSPACES_HPP
