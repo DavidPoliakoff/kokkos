@@ -210,7 +210,6 @@ struct MemorySpaceAccess<Kokkos::AnonymousSpace,
 namespace Kokkos {
 
 namespace Impl {
-
 template <class BaseSpace, class DefaultExecutionSpace, class Namer,
           bool SharesAccessSemanticsWithBase>
 class SharedAllocationRecord<
@@ -366,9 +365,10 @@ class SharedAllocationRecord<
  * instance */
 template <class BaseSpace, class DefaultExecutionSpace, class Namer,
           bool SharesAccessSemanticsWithBase>
-    RecordBase < Kokkos::Experimental::LogicalMemorySpace<
-                     BaseSpace, DefaultExecutionSpace, Namer,
-                     SharesAccessSemanticsWithBase>::s_root_record;
+SharedAllocationRecord<void, void> SharedAllocationRecord<
+    Kokkos::Experimental::LogicalMemorySpace<
+        BaseSpace, DefaultExecutionSpace, Namer, SharesAccessSemanticsWithBase>,
+    void>::s_root_record;
 #endif
 
 }  // namespace Impl
