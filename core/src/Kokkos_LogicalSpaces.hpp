@@ -69,13 +69,6 @@ class LogicalMemorySpace {
                  const size_t arg_logical_size = 0) const {
     return impl_allocate(arg_label, arg_alloc_size, arg_logical_size);
   }
-  void* impl_allocate(const char* arg_label, const size_t arg_alloc_size,
-                      const size_t arg_logical_size = 0,
-                      Kokkos::Tools::SpaceHandle arg_handle =
-                          Kokkos::Tools::make_space_handle(name())) const {
-    return underlying_allocator.impl_allocate(arg_label, arg_alloc_size,
-                                              arg_logical_size, arg_handle);
-  }
 
   /**\brief  Deallocate untracked memory in the space */
   void deallocate(void* const arg_alloc_ptr,
@@ -87,6 +80,18 @@ class LogicalMemorySpace {
                   const size_t arg_logical_size = 0) const {
     impl_deallocate(arg_label, arg_alloc_ptr, arg_alloc_size, arg_logical_size);
   }
+
+ private:
+  template <class, class, class, bool>
+  friend class LogicalMemorySpace;
+
+  void* impl_allocate(const char* arg_label, const size_t arg_alloc_size,
+                      const size_t arg_logical_size = 0,
+                      Kokkos::Tools::SpaceHandle arg_handle =
+                          Kokkos::Tools::make_space_handle(name())) const {
+    return underlying_allocator.impl_allocate(arg_label, arg_alloc_size,
+                                              arg_logical_size, arg_handle);
+  }
   void impl_deallocate(const char* arg_label, void* const arg_alloc_ptr,
                        const size_t arg_alloc_size,
                        const size_t arg_logical_size = 0,
@@ -96,6 +101,7 @@ class LogicalMemorySpace {
         arg_label, arg_alloc_ptr, arg_alloc_size, arg_logical_size, arg_handle);
   }
 
+ public:
   /**\brief Return Name of the MemorySpace */
   constexpr static const char* name() { return Namer::get_name(); }
 
