@@ -96,16 +96,26 @@ void expect_deallocation_event(const std::string& evn, const std::string& esn) {
       });
 }
 
-class TestSpaceNamer {
+struct TestSpaceNamer {
   static constexpr const char* get_name() { return "TestSpace"; }
+};
+struct TestSpaceNamerTwo {
+  static constexpr const char* get_name() { return "YoDawg"; }
 };
 
 int main() {
   Kokkos::initialize();
   {
-    using fake_memory_space =
-        Kokkos::LogicalMemorySpace<Kokkos::HostSpace, Kokkos::Serial, Kokkos::DefaultMemorySpaceNamer, true
-                                   >;
+    using fake_memory_space = Kokkos::Experimental::LogicalMemorySpace<
+        Kokkos::HostSpace, Kokkos::Serial, TestSpaceNamer, true>;
+    using doubly_fake_memory_space = Kokkos::Experimental::LogicalMemorySpace<
+        fake_memory_space, Kokkos::Serial, TestSpaceNamerTwo, true>;
+    {
+      expect_allocation_event("xzibit_dot_jpeg", "YoDawg");
+      Kokkos::View<double*, doubly_fake_memory_space> pup_view(
+          "xzibit_dot_jpeg", 1000);
+      expect_deallocation_event("xzibit_dot_jpeg", "YoDawg");
+    }
     expect_allocation_event("puppy_view", "TestSpace");
     Kokkos::View<double*, fake_memory_space> pup_view("puppy_view", 1000);
     expect_allocation_event("does_malloc_work", "TestSpace");
@@ -120,5 +130,6 @@ int main() {
     debug_space.deallocate("allocation_from_space", temp, 1000);
     expect_deallocation_event("puppy_view", "TestSpace");
   }
+  Kokkos::Tools::Experimental::pause_tools();
   Kokkos::finalize();
 }
