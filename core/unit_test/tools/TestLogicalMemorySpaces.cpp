@@ -53,39 +53,72 @@
 
 void debug_print(const Kokkos_Profiling_SpaceHandle hand, const char* name,
    const void* ptr, const size_t size) {
-  std::cout << hand.name << ", [" << name << "," << ptr << "] "
+  std::cout << "Alloc: " << hand.name << ", [" << name << "," << ptr << "] "
             << size << std::endl;
 }
-    template<typename ... Args>
-    using space = Kokkos::LogicalMemorySpace<Args...>;
+void debug_dealloc(const Kokkos_Profiling_SpaceHandle hand, const char* name,
+                   const void* ptr, const size_t size) {
+  std::cout << "Dealloc: " << hand.name << ", [" << name << "," << ptr << "] "
+            << size << std::endl;
+}
+
+void fail_on_event(const Kokkos::Profiling::SpaceHandle hand, const char* name,
+                   const void* ptr, const size_t size) {
+  std::cout << ":(\n";
+  assert(false);
+}
+
+void expect_no_events() {
+  Kokkos::Tools::Experimental::set_allocate_data_callback(fail_on_event);
+  Kokkos::Tools::Experimental::set_deallocate_data_callback(fail_on_event);
+}
+
+void expect_allocation_event(const std::string& evn, const std::string& esn) {
+  static std::string expected_view_name  = evn;
+  static std::string expected_space_name = esn;
+  Kokkos::Tools::Experimental::set_allocate_data_callback(
+      [](const Kokkos_Profiling_SpaceHandle hand, const char* name,
+         const void* ptr, const size_t size) {
+        assert(std::string(hand.name) == expected_space_name);
+        assert(std::string(name) == expected_view_name);
+        expect_no_events();
+      });
+}
+void expect_deallocation_event(const std::string& evn, const std::string& esn) {
+  static std::string expected_view_name  = evn;
+  static std::string expected_space_name = esn;
+  Kokkos::Tools::Experimental::set_deallocate_data_callback(
+      [](const Kokkos_Profiling_SpaceHandle hand, const char* name,
+         const void* ptr, const size_t size) {
+        assert(std::string(hand.name) == expected_space_name);
+        assert(std::string(name) == expected_view_name);
+        expect_no_events();
+      });
+}
+
+class TestSpaceNamer {
+  static constexpr const char* get_name() { return "TestSpace"; }
+};
+
 int main() {
   Kokkos::initialize();
   {
-    Kokkos::Tools::Experimental::set_allocate_data_callback(debug_print);
     using fake_memory_space =
         Kokkos::LogicalMemorySpace<Kokkos::HostSpace, Kokkos::Serial, Kokkos::DefaultMemorySpaceNamer, true
                                    >;
-    using dv_test_space =
-        Kokkos::LogicalMemorySpace<Kokkos::HostSpace, Kokkos::Serial,
-                                   Kokkos::DefaultMemorySpaceNamer, false>;
-    Kokkos::View<double*, fake_memory_space> pup_view("pup_view", 1000);
-    Kokkos::View<double*, Kokkos::HostSpace> opup_view("opup_view", 1000);
-    auto* lsiadf = Kokkos::kokkos_malloc("answer_question", 1000);
-    Kokkos::kokkos_free(lsiadf);
-    std::cout << "=================================" << std::endl;
-    Kokkos::DualView<double*, dv_test_space> pup_dual_vew("pup_dv", 1000);
-    std::cout << "=================================" << std::endl;
-    std::cout << "DV: host: "<<pup_dual_vew.h_view.data() << std::endl;
-    std::cout << "DV: \"device\": "<<pup_dual_vew.d_view.data() << std::endl;
-    Kokkos::deep_copy(pup_view, opup_view);
-    Kokkos::deep_copy(opup_view, pup_view);
-    Kokkos::deep_copy(pup_view, pup_view);
-    std::cout << "Now I'm going to run a kernel that touches the LogicalMemorySpace. It definitely won't cause an access violation." << std::endl;
-    Kokkos::parallel_for(
-        "pup_kernel", Kokkos::RangePolicy<Kokkos::Serial>(0, 1000),
-        KOKKOS_LAMBDA(const int i) { pup_view(i) = i; });
-    Kokkos::fence();
-    std::cout << "See? What did I tell you." << std::endl;
+    expect_allocation_event("puppy_view", "TestSpace");
+    Kokkos::View<double*, fake_memory_space> pup_view("puppy_view", 1000);
+    expect_allocation_event("does_malloc_work", "TestSpace");
+    auto* temp =
+        Kokkos::kokkos_malloc<fake_memory_space>("does_malloc_work", 1000);
+    expect_deallocation_event("allocation_from_space", "TestSpace");
+    Kokkos::kokkos_free(temp);
+    fake_memory_space debug_space;
+    expect_allocation_event("allocation_from_space", "TestSpace");
+    temp = debug_space.allocate("allocation_from_space", 1000);
+    expect_deallocation_event("allocation_from_space", "TestSpace");
+    debug_space.deallocate("allocation_from_space", temp, 1000);
+    expect_deallocation_event("puppy_view", "TestSpace");
   }
   Kokkos::finalize();
 }

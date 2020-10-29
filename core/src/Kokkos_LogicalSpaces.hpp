@@ -4,6 +4,7 @@
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Core_fwd.hpp>
 #include <Kokkos_ScratchSpace.hpp>
+#include <impl/Kokkos_MemorySpace.hpp>
 #include <impl/Kokkos_Error.hpp>
 #include <impl/Kokkos_SharedAlloc.hpp>
 #include <impl/Kokkos_Profiling_Interface.hpp>
@@ -66,13 +67,33 @@ class LogicalMemorySpace {
   }
   void* allocate(const char* arg_label, const size_t arg_alloc_size,
                  const size_t arg_logical_size = 0) const {
-    return underlying_allocator.allocate(arg_label, arg_alloc_size,
-                                         arg_logical_size);
+    return impl_allocate(arg_label, arg_alloc_size, arg_logical_size);
   }
+  void* impl_allocate(const char* arg_label, const size_t arg_alloc_size,
+                      const size_t arg_logical_size = 0,
+                      Kokkos::Tools::SpaceHandle arg_handle =
+                          Kokkos::Tools::make_space_handle(name())) const {
+    return underlying_allocator.impl_allocate(arg_label, arg_alloc_size,
+                                              arg_logical_size, arg_handle);
+  }
+
   /**\brief  Deallocate untracked memory in the space */
   void deallocate(void* const arg_alloc_ptr,
                   const size_t arg_alloc_size) const {
-    return underlying_allocator.deallocate(arg_alloc_ptr, arg_alloc_size);
+    deallocate("[unlabeled]", arg_alloc_ptr, arg_alloc_size);
+  }
+  void deallocate(const char* arg_label, void* const arg_alloc_ptr,
+                  const size_t arg_alloc_size,
+                  const size_t arg_logical_size = 0) const {
+    impl_deallocate(arg_label, arg_alloc_ptr, arg_alloc_size, arg_logical_size);
+  }
+  void impl_deallocate(const char* arg_label, void* const arg_alloc_ptr,
+                       const size_t arg_alloc_size,
+                       const size_t arg_logical_size = 0,
+                       const Kokkos::Tools::SpaceHandle arg_handle =
+                           Kokkos::Tools::make_space_handle(name())) const {
+    underlying_allocator.impl_deallocate(
+        arg_label, arg_alloc_ptr, arg_alloc_size, arg_logical_size, arg_handle);
   }
 
   /**\brief Return Name of the MemorySpace */
@@ -168,14 +189,11 @@ class SharedAllocationRecord<
 
  protected:
   ~SharedAllocationRecord() {
-    if (Kokkos::Profiling::profileLibraryLoaded()) {
-      Kokkos::Profiling::deallocateData(
-          Kokkos::Profiling::make_space_handle(m_space.name()),
-          RecordBase::m_alloc_ptr->m_label, data(), size());
-    }
-
-    m_space.deallocate(SharedAllocationRecord<void, void>::m_alloc_ptr,
-                       SharedAllocationRecord<void, void>::m_alloc_size);
+    m_space.deallocate(RecordBase::m_alloc_ptr->m_label,
+                       SharedAllocationRecord<void, void>::m_alloc_ptr,
+                       SharedAllocationRecord<void, void>::m_alloc_size,
+                       (SharedAllocationRecord<void, void>::m_alloc_size -
+                        sizeof(SharedAllocationHeader)));
   }
   SharedAllocationRecord() = default;
 
@@ -187,17 +205,10 @@ class SharedAllocationRecord<
 #ifdef KOKKOS_DEBUG
             &SharedAllocationRecord<SpaceType, void>::s_root_record,
 #endif
-            reinterpret_cast<SharedAllocationHeader*>(arg_space.allocate(
-                arg_label.c_str(),
-                sizeof(SharedAllocationHeader) + arg_alloc_size,
-                arg_alloc_size)),
+            Impl::checked_allocation_with_header(arg_space, arg_label,
+                                                 arg_alloc_size),
             sizeof(SharedAllocationHeader) + arg_alloc_size, arg_dealloc),
         m_space(arg_space) {
-    if (Kokkos::Profiling::profileLibraryLoaded()) {
-      Kokkos::Profiling::allocateData(
-          Kokkos::Profiling::make_space_handle(arg_space.name()), arg_label,
-          data(), arg_alloc_size);
-    }
     // Fill in the Header information
     RecordBase::m_alloc_ptr->m_record =
         static_cast<SharedAllocationRecord<void, void>*>(this);
