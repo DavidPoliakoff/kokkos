@@ -110,9 +110,8 @@ struct TestSpaceNamer {
 struct TestSpaceNamerTwo {
   static constexpr const char* get_name() { return "YoDawg"; }
 };
-using fake_memory_space =
-    Kokkos::Experimental::LogicalMemorySpace<Kokkos::HostSpace, Kokkos::Serial,
-                                             TestSpaceNamer, true>;
+using fake_memory_space = Kokkos::Experimental::LogicalMemorySpace<
+    Kokkos::HostSpace, Kokkos::DefaultHostExecutionSpace, TestSpaceNamer, true>;
 
 void test_view_construct() {
   {
@@ -133,7 +132,8 @@ void test_malloc_free() {
 }
 void test_chained_spaces() {
   using doubly_fake_memory_space = Kokkos::Experimental::LogicalMemorySpace<
-      fake_memory_space, Kokkos::Serial, TestSpaceNamerTwo, true>;
+      fake_memory_space, Kokkos::DefaultHostExecutionSpace, TestSpaceNamerTwo,
+      true>;
   {
     expect_allocation_event("xzibit_dot_jpeg", "YoDawg",
                             "Chained space view allocation");
