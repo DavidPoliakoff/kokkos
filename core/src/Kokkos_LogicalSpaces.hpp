@@ -230,7 +230,7 @@ class SharedAllocationRecord<
     delete static_cast<SharedAllocationRecord*>(arg_rec);
   }
 
-#ifdef KOKKOS_DEBUG
+#ifdef KOKKOS_ENABLE_DEBUG
   /**\brief  Root record for tracked allocations from this
    * LogicalMemorySpace instance */
   static RecordBase s_root_record;
@@ -253,7 +253,7 @@ class SharedAllocationRecord<
       const size_t arg_alloc_size,
       const RecordBase::function_type arg_dealloc = &deallocate)
       : SharedAllocationRecord<void, void>(
-#ifdef KOKKOS_DEBUG
+#ifdef KOKKOS_ENABLE_DEBUG
             &SharedAllocationRecord<SpaceType, void>::s_root_record,
 #endif
             Impl::checked_allocation_with_header(arg_space, arg_label,
@@ -344,7 +344,7 @@ class SharedAllocationRecord<
 
     return record;
   }
-#ifdef KOKKOS_DEBUG
+#ifdef KOKKOS_ENABLE_DEBUG
   static void print_records(std::ostream& s, const SpaceType&,
                             bool detail = false) {
     SharedAllocationRecord<void, void>::print_host_accessible_records(
@@ -357,11 +357,11 @@ class SharedAllocationRecord<
     throw_runtime_exception(
         "SharedAllocationRecord<HostSpace>::print_records only works "
         "with "
-        "KOKKOS_DEBUG enabled");
+        "KOKKOS_ENABLE_DEBUG enabled");
   }
 #endif
 };
-#ifdef KOKKOS_DEBUG
+#ifdef KOKKOS_ENABLE_DEBUG
 /**\brief  Root record for tracked allocations from this LogicalSpace
  * instance */
 template <class BaseSpace, class DefaultExecutionSpace, class Namer,
