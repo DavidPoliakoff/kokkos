@@ -52,7 +52,7 @@
 #include <Kokkos_DualView.hpp>
 
 void debug_print(const Kokkos_Profiling_SpaceHandle hand, const char* name,
-   const void* ptr, const size_t size) {
+                 const void* ptr, const size_t size) {
   std::cout << "Alloc: " << hand.name << ", [" << name << "," << ptr << "] "
             << size << std::endl;
 }
