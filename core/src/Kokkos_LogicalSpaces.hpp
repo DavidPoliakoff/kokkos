@@ -336,9 +336,9 @@ class SharedAllocationRecord<
         head ? static_cast<RecordHost*>(head->m_record) : (RecordHost*)nullptr;
 
     if (!alloc_ptr || record->m_alloc_ptr != head) {
-      Kokkos::Impl::throw_runtime_exception(
-          std::string("Kokkos::Impl::SharedAllocationRecord< SpaceType , "
-                      "void >::get_record ERROR"));
+      Kokkos::Impl::throw_runtime_exception(std::string(
+          "Kokkos::Impl::SharedAllocationRecord< LogicalMemorySpace<> , "
+          "void >::get_record ERROR"));
     }
 
     return record;
