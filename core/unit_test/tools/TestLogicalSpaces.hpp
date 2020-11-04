@@ -61,13 +61,13 @@ void debug_dealloc(const Kokkos_Profiling_SpaceHandle hand, const char* name,
 }
 
 void fail_on_event(const Kokkos::Profiling::SpaceHandle, const char*,
-                   const void*, const size_t) {
+                   const void*, const uint64_t) {
   ASSERT_TRUE(false) << "Unexpected memory event";
 }
 
 void expect_no_events() {
-  Kokkos::Tools::Experimental::set_allocate_data_callback(fail_on_event);
-  Kokkos::Tools::Experimental::set_deallocate_data_callback(fail_on_event);
+  Kokkos::Tools::Experimental::set_allocate_data_callback(&fail_on_event);
+  Kokkos::Tools::Experimental::set_deallocate_data_callback(&fail_on_event);
 }
 
 std::string expected_view_name;
@@ -80,7 +80,7 @@ void expect_allocation_event(const std::string evn, const std::string esn,
   error_message       = em;
   Kokkos::Tools::Experimental::set_allocate_data_callback(
       [](const Kokkos_Profiling_SpaceHandle hand, const char* name, const void*,
-         const size_t) {
+         const uint64_t) {
         ASSERT_EQ(std::string(hand.name), expected_space_name)
             << error_message << " (bad handle)";
         ASSERT_EQ(std::string(name), expected_view_name)
@@ -95,7 +95,7 @@ void expect_deallocation_event(const std::string& evn, const std::string& esn,
   error_message       = em;
   Kokkos::Tools::Experimental::set_deallocate_data_callback(
       [](const Kokkos_Profiling_SpaceHandle hand, const char* name, const void*,
-         const size_t) {
+         const uint64_t) {
         ASSERT_EQ(std::string(hand.name), expected_space_name)
             << error_message << " (bad handle)";
         ASSERT_EQ(std::string(name), expected_view_name)
