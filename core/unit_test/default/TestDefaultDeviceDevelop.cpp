@@ -49,8 +49,22 @@
 
 #include <default/TestDefaultDeviceType_Category.hpp>
 
+namespace Kokkos {
+namespace Impl {
+}
+}
+
 namespace Test {
 
-TEST(defaultdevicetype, development_test) {}
+TEST(defaultdevicetype, development_test) {
+	Kokkos::View<float*,Kokkos::HostSpace> test_host_view("host_view",1000);
+	Kokkos::View<float*,Kokkos::Experimental::FakeGPUSpace> test_device_view("device_view",1000);
+	std::cout << std::boolalpha << bool(Kokkos::Impl::MemorySpaceAccess<Kokkos::HostSpace, Kokkos::Experimental::FakeGPUSpace>::accessible) << std::boolalpha << std::endl;
+Kokkos::parallel_for("dogs",Kokkos::RangePolicy<Kokkos::Experimental::FakeGPU>(0,1000), KOKKOS_LAMBDA(int i){
+  test_host_view(i) = i;
+  test_device_view(i) = i;
+		});
+
+}
 
 }  // namespace Test

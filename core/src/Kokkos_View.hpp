@@ -56,7 +56,7 @@
 #include <Kokkos_ExecPolicy.hpp>
 
 #include <impl/Kokkos_Tools.hpp>
-
+#include <iostream>
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
@@ -792,7 +792,9 @@ class View : public ViewTraits<DataType, Properties...> {
   template <class Space, bool = Kokkos::Impl::MemorySpaceAccess<
                              Space, typename traits::memory_space>::accessible>
   struct verify_space {
-    KOKKOS_FORCEINLINE_FUNCTION static void check() {}
+    KOKKOS_FORCEINLINE_FUNCTION static void check() {
+      std::cout << Space::name() << " is allowed to access "<< traits::memory_space::name() << std::endl;
+    }
   };
 
   template <class Space>

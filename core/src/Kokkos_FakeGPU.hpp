@@ -56,6 +56,7 @@
 #include <Kokkos_Core_fwd.hpp>
 #include <Kokkos_Parallel.hpp>
 //#include <Kokkos_TaskScheduler.hpp>
+#include <Kokkos_LogicalSpaces.hpp>
 #include <Kokkos_Layout.hpp>
 #include <Kokkos_HostSpace.hpp>
 #include <Kokkos_ScratchSpace.hpp>
@@ -73,6 +74,14 @@
 
 namespace Kokkos {
 namespace Experimental {
+
+class FakeGPU;
+
+struct FakeGPUMemSpaceNamer {
+	static const char* get_name() { return "FakeGPUSpace"; }
+};
+
+using FakeGPUSpace = Kokkos::Experimental::LogicalMemorySpace<Kokkos::HostSpace, FakeGPU, FakeGPUMemSpaceNamer, false>; 
 /// \class FakeGPU
 /// \brief Kokkos device for non-parallel execution
 ///
@@ -93,7 +102,7 @@ class FakeGPU {
   //! Tag this class as an execution space:
   using execution_space = FakeGPU;
   //! This device's preferred memory space.
-  using memory_space = Kokkos::HostSpace;
+  using memory_space = FakeGPUSpace;
   //! The size_type alias best suited for this device.
   using size_type = memory_space::size_type;
   //! This execution space preferred device_type
@@ -198,6 +207,7 @@ struct MemorySpaceAccess<Kokkos::Experimental::FakeGPU::memory_space,
   enum : bool { accessible = true };
   enum : bool { deepcopy = false };
 };
+
 
 template <>
 struct VerifyExecutionCanAccessMemorySpace<
