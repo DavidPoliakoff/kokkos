@@ -73,6 +73,11 @@ template <class BaseSpace, class DefaultExecutionSpace = void,
           class Namer               = DefaultMemorySpaceNamer,
           bool SharesAccessWithBase = true>
 class LogicalMemorySpace {
+#ifdef KOKKOS_ENABLE_OPENMPTARGET
+  static_assert(!std::is_same<BaseSpace, BaseSpace>::value,
+                "Can't use LogicalMemorySpaces in an OpenMPTarget build, we're "
+                "debugging memory issues");
+#endif
  public:
   //! Tag this class as a kokkos memory space
   using memory_space = LogicalMemorySpace<BaseSpace, DefaultExecutionSpace,
