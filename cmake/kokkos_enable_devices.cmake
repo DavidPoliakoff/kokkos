@@ -126,7 +126,7 @@ ELSE()
   ENDIF()
 ENDIF()
 KOKKOS_DEVICE_OPTION(SERIAL ${SERIAL_DEFAULT} HOST "Whether to build serial backend")
-KOKKOS_DEVICE_OPTION(FAKEGPU OFF DEVICE "Whether to build the Fake GPU Backend (HIGHLY EXPERIMENTAL)")
+KOKKOS_DEVICE_OPTION(FAKEGPU OFF HOST "Whether to build the Fake GPU Backend (HIGHLY EXPERIMENTAL)")
 
 KOKKOS_DEVICE_OPTION(HPX OFF HOST "Whether to build HPX backend (experimental)")
 
