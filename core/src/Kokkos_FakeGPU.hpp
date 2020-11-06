@@ -81,11 +81,13 @@ struct FakeGPUMemSpaceNamer {
 	static const char* get_name() { return "FakeGPUSpace"; }
 };
 struct FakeHostMemSpaceNamer {
-	static const char* get_name() { return "FakeHostSpace"; }
+  static const char* get_name() { return "FakeHostSpace"; }
 };
 
-using FakeGPUSpace = Kokkos::Experimental::LogicalMemorySpace<Kokkos::HostSpace, FakeGPU, FakeGPUMemSpaceNamer, false>; 
-using FakeHostSpace = Kokkos::Experimental::LogicalMemorySpace<Kokkos::HostSpace, Kokkos::Serial, FakeHostMemSpaceNamer, false>; 
+using FakeGPUSpace = Kokkos::Experimental::LogicalMemorySpace<Kokkos::HostSpace, FakeGPU, FakeGPUMemSpaceNamer, false>;
+using FakeHostSpace =
+    Kokkos::Experimental::LogicalMemorySpace<Kokkos::HostSpace, Kokkos::Serial,
+                                             FakeHostMemSpaceNamer, false>;
 
 /// \class FakeGPU
 /// \brief Kokkos device for non-parallel execution
@@ -175,17 +177,19 @@ class FakeGPU {
   static const char* name();
   //--------------------------------------------------------------------------
 };
-} // namespace Experimental
+}  // namespace Experimental
 
-template<bool WantGPU>
+template <bool WantGPU>
 struct CheckOnGPU {
   static void check() {
-    bool error_state = 
-	    Kokkos::Experimental::FakeGPU::is_on_gpu() != WantGPU;
-    if(error_state) { 
-
-      std::string error_string = "Invalid " + std::string(Kokkos::Experimental::FakeGPU::is_on_gpu() ? "GPU" : "CPU") + " access\n";
-      Kokkos::abort(error_string.c_str()); 
+    bool error_state = Kokkos::Experimental::FakeGPU::is_on_gpu() != WantGPU;
+    if (error_state) {
+      std::string error_string =
+          "Invalid " +
+          std::string(Kokkos::Experimental::FakeGPU::is_on_gpu() ? "GPU"
+                                                                 : "CPU") +
+          " access\n";
+      Kokkos::abort(error_string.c_str());
     }
   }
 };
@@ -203,8 +207,7 @@ struct CheckedFetch {
   operator const ValueType*() const { return m_ptr; }
 
   KOKKOS_INLINE_FUNCTION
-  CheckedFetch() : m_ptr() {
-  }
+  CheckedFetch() : m_ptr() {}
 
   KOKKOS_DEFAULTED_FUNCTION
   ~CheckedFetch() = default;
@@ -226,40 +229,33 @@ struct CheckedFetch {
     m_ptr = rhs.m_ptr;
     return *this;
   }
- // TODO DZP this seems wrong
-  inline explicit CheckedFetch(
-      ValueType* const arg_ptr
-      )
-      : m_ptr(arg_ptr) {}
+  // TODO DZP this seems wrong
+  inline explicit CheckedFetch(ValueType* const arg_ptr) : m_ptr(arg_ptr) {}
   template <class MemorySpace>
   inline explicit CheckedFetch(
       const ValueType* const arg_ptr,
       Kokkos::Impl::SharedAllocationRecord<MemorySpace, void>*)
-      : m_ptr(arg_ptr) {
-
-      }
+      : m_ptr(arg_ptr) {}
 
   KOKKOS_INLINE_FUNCTION
   CheckedFetch(CheckedFetch const rhs, size_t offset)
       : m_ptr(rhs.m_ptr + offset) {}
 };
 
-
 struct FakeSpaceTag {};
 template <class Traits>
 class ViewDataHandle<
     Traits, typename std::enable_if<std::is_same<typename Traits::specialize,
-                              FakeSpaceTag>::value>::type> {
+                                                 FakeSpaceTag>::value>::type> {
  public:
   using track_type = Kokkos::Impl::SharedAllocationTracker;
 
   using value_type  = typename Traits::value_type;
   using return_type = typename Traits::value_type&;
   using memspace    = typename Traits::memory_space;
-  using handle_type = Kokkos::Impl::CheckedFetch<value_type, CheckOnGPU<std::is_same<
-            memspace,
-	    Kokkos::Experimental::FakeGPUSpace
-	  >::value>>;
+  using handle_type = Kokkos::Impl::CheckedFetch<
+      value_type, CheckOnGPU<std::is_same<
+                      memspace, Kokkos::Experimental::FakeGPUSpace>::value>>;
 
   KOKKOS_INLINE_FUNCTION
   static handle_type const& assign(handle_type const& arg_handle,
@@ -288,58 +284,60 @@ class ViewDataHandle<
     record* const r = arg_tracker.template get_record<memory_space>();
 
     return handle_type(arg_data_ptr, r);
-
   }
 };
 
-
-
-} // namespace Impl
+}  // namespace Impl
 
 // this stuff is in raw namespace Kokkos
 template <class... Prop>
-struct ViewTraits <void, Kokkos::Experimental::FakeGPUSpace, Prop...>{
-  using specialize = Impl::FakeSpaceTag;
-  using memory_space = Kokkos::Experimental::FakeGPUSpace;
+struct ViewTraits<void, Kokkos::Experimental::FakeGPUSpace, Prop...> {
+  using specialize      = Impl::FakeSpaceTag;
+  using memory_space    = Kokkos::Experimental::FakeGPUSpace;
   using execution_space = memory_space::execution_space;
-  using array_layout = execution_space::array_layout;
-  using HostMirror = Kokkos::Experimental::FakeHostSpace;
+  using array_layout    = execution_space::array_layout;
+  using HostMirror      = Kokkos::Experimental::FakeHostSpace;
   using HostMirrorSpace = Kokkos::Experimental::FakeHostSpace;
-  using memory_traits = typename ViewTraits<void,Prop...>::memory_traits;
-  //using reference_type = typename Kokkos::Impl::ViewDataHandle<memory_traits>::return_type;
+  using memory_traits   = typename ViewTraits<void, Prop...>::memory_traits;
+  // using reference_type = typename
+  // Kokkos::Impl::ViewDataHandle<memory_traits>::return_type;
 };
 template <class... Prop>
-struct ViewTraits <void, Kokkos::Experimental::FakeHostSpace, Prop...>{
-  using specialize = Impl::FakeSpaceTag;
-  using memory_space = Kokkos::Experimental::FakeHostSpace;
+struct ViewTraits<void, Kokkos::Experimental::FakeHostSpace, Prop...> {
+  using specialize      = Impl::FakeSpaceTag;
+  using memory_space    = Kokkos::Experimental::FakeHostSpace;
   using execution_space = memory_space::execution_space;
-  using array_layout = execution_space::array_layout;
-  using HostMirror = Kokkos::Experimental::FakeHostSpace;
+  using array_layout    = execution_space::array_layout;
+  using HostMirror      = Kokkos::Experimental::FakeHostSpace;
   using HostMirrorSpace = Kokkos::Experimental::FakeHostSpace;
-  using memory_traits = typename ViewTraits<void,Prop...>::memory_traits;
-  //using reference_type = typename Kokkos::Impl::ViewDataHandle<memory_traits>::return_type;
+  using memory_traits   = typename ViewTraits<void, Prop...>::memory_traits;
+  // using reference_type = typename
+  // Kokkos::Impl::ViewDataHandle<memory_traits>::return_type;
 };
 
 namespace Impl {
-template <class Traits> class ViewMapping<Traits, FakeSpaceTag> {
-private:
-  template <class, class...> friend class ViewMapping;
-  template <class, class...> friend class Kokkos::View;
+template <class Traits>
+class ViewMapping<Traits, FakeSpaceTag> {
+ private:
+  template <class, class...>
+  friend class ViewMapping;
+  template <class, class...>
+  friend class Kokkos::View;
 
   typedef ViewOffset<typename Traits::dimension, typename Traits::array_layout,
                      void>
       offset_type;
 
   typedef typename ViewDataHandle<Traits>::handle_type handle_type;
-  mutable handle_type m_handle; // TODO DZP: what on earth is Kokkos even doing in this design.
+  mutable handle_type
+      m_handle;  // TODO DZP: what on earth is Kokkos even doing in this design.
   offset_type m_offset;
 
   KOKKOS_INLINE_FUNCTION
-  ViewMapping(const handle_type &arg_handle, const offset_type &arg_offset)
-      : m_handle(arg_handle), m_offset(arg_offset) {
-      }
+  ViewMapping(const handle_type& arg_handle, const offset_type& arg_offset)
+      : m_handle(arg_handle), m_offset(arg_offset) {}
 
-public:
+ public:
   typedef void printable_label_typedef;
   enum { is_managed = Traits::is_managed };
 
@@ -349,12 +347,12 @@ public:
   enum { Rank = Traits::dimension::rank };
 
   template <typename iType>
-  KOKKOS_INLINE_FUNCTION constexpr size_t extent(const iType &r) const {
+  KOKKOS_INLINE_FUNCTION constexpr size_t extent(const iType& r) const {
     return m_offset.m_dim.extent(r);
   }
 
-  KOKKOS_INLINE_FUNCTION constexpr typename Traits::array_layout
-  layout() const {
+  KOKKOS_INLINE_FUNCTION constexpr typename Traits::array_layout layout()
+      const {
     return m_offset.layout();
   }
 
@@ -412,7 +410,7 @@ public:
   }
 
   template <typename iType>
-  KOKKOS_INLINE_FUNCTION void stride(iType *const s) const {
+  KOKKOS_INLINE_FUNCTION void stride(iType* const s) const {
     m_offset.stride(s);
   }
 
@@ -430,7 +428,7 @@ public:
   }
 
   typedef typename ViewDataHandle<Traits>::return_type reference_type;
-  typedef typename Traits::value_type *pointer_type;
+  typedef typename Traits::value_type* pointer_type;
 
   /** \brief  Query raw pointer to memory */
   KOKKOS_INLINE_FUNCTION constexpr pointer_type data() const {
@@ -522,14 +520,13 @@ public:
     return m_handle[m_impl_offset(i0, i1, i2, i3, i4, i5, i6, i7)];
   }
 
-
   //----------------------------------------
 
-private:
+ private:
   enum { MemorySpanMask = 8 - 1 /* Force alignment on 8 byte boundary */ };
   enum { MemorySpanSize = sizeof(typename Traits::value_type) };
 
-public:
+ public:
   /** \brief  Span, in bytes, of the referenced memory */
   KOKKOS_INLINE_FUNCTION constexpr size_t memory_span() const {
     return (m_offset.span() * sizeof(typename Traits::value_type) +
@@ -541,18 +538,17 @@ public:
 
   KOKKOS_INLINE_FUNCTION ~ViewMapping() {}
   KOKKOS_INLINE_FUNCTION ViewMapping() : m_handle(), m_offset() {}
-  KOKKOS_INLINE_FUNCTION ViewMapping(const ViewMapping &rhs)
+  KOKKOS_INLINE_FUNCTION ViewMapping(const ViewMapping& rhs)
       : m_handle(rhs.m_handle), m_offset(rhs.m_offset) {}
-  KOKKOS_INLINE_FUNCTION ViewMapping &operator=(const ViewMapping &rhs) {
+  KOKKOS_INLINE_FUNCTION ViewMapping& operator=(const ViewMapping& rhs) {
     m_handle = rhs.m_handle;
     m_offset = rhs.m_offset;
     return *this;
   }
 
-  KOKKOS_INLINE_FUNCTION ViewMapping(ViewMapping &&rhs)
-      : m_handle(rhs.m_handle), m_offset(rhs.m_offset)
-       {}
-  KOKKOS_INLINE_FUNCTION ViewMapping &operator=(ViewMapping &&rhs) {
+  KOKKOS_INLINE_FUNCTION ViewMapping(ViewMapping&& rhs)
+      : m_handle(rhs.m_handle), m_offset(rhs.m_offset) {}
+  KOKKOS_INLINE_FUNCTION ViewMapping& operator=(ViewMapping&& rhs) {
     m_handle = rhs.m_handle;
     m_offset = rhs.m_offset;
     return *this;
@@ -562,8 +558,8 @@ public:
 
   /**\brief  Span, in bytes, of the required memory */
   KOKKOS_INLINE_FUNCTION
-  static constexpr size_t
-  memory_span(typename Traits::array_layout const &arg_layout) {
+  static constexpr size_t memory_span(
+      typename Traits::array_layout const& arg_layout) {
     typedef std::integral_constant<unsigned, 0> padding;
     return (offset_type(padding(), arg_layout).span() * MemorySpanSize +
             MemorySpanMask) &
@@ -572,14 +568,14 @@ public:
 
   /**\brief  Wrap a span of memory */
   template <class... P>
-  KOKKOS_INLINE_FUNCTION
-  ViewMapping(Kokkos::Impl::ViewCtorProp<P...> const &arg_prop,
-              typename Traits::array_layout const &arg_layout)
+  KOKKOS_INLINE_FUNCTION ViewMapping(
+      Kokkos::Impl::ViewCtorProp<P...> const& arg_prop,
+      typename Traits::array_layout const& arg_layout)
       : m_handle(
-            ((Kokkos::Impl::ViewCtorProp<void, pointer_type> const &)arg_prop)
+            ((Kokkos::Impl::ViewCtorProp<void, pointer_type> const&)arg_prop)
                 .value
 
-		) {
+        ) {
     typedef typename Traits::value_type value_type;
     typedef std::integral_constant<
         unsigned, Kokkos::Impl::ViewCtorProp<P...>::allow_padding
@@ -657,66 +653,71 @@ public:
     }
 
     return record;
-}
-//  template <class... P>
-//  Kokkos::Impl::SharedAllocationRecord<> *
-//  allocate_shared(Kokkos::Impl::ViewCtorProp<P...> const &arg_prop,
-//                  typename Traits::array_layout const &arg_layout) {
-//    typedef Kokkos::Impl::ViewCtorProp<P...> alloc_prop;
-//
-//    typedef typename alloc_prop::execution_space execution_space;
-//    typedef typename Traits::memory_space memory_space;
-//    typedef typename Traits::value_type value_type;
-//    typedef ViewValueFunctor<execution_space, value_type> functor_type;
-//    typedef Kokkos::Impl::SharedAllocationRecord<memory_space, functor_type>
-//        record_type;
-//
-//    // Query the mapping for byte-size of allocation.
-//    // If padding is allowed then pass in sizeof value type
-//    // for padding computation.
-//    typedef std::integral_constant<
-//        unsigned, alloc_prop::allow_padding ? sizeof(value_type) : 0>
-//        padding;
-//
-//    typename Traits::array_layout layout;
-//    for (int i = 0; i < Traits::rank; i++)
-//      layout.dimension[i] = arg_layout.dimension[i];
-//    m_offset = offset_type(padding(), layout);
-//
-//    const size_t alloc_size = memory_span();
-//
-//    // Create shared memory tracking record with allocate memory from the memory
-//    // space
-//    auto memspace = ((Kokkos::Impl::ViewCtorProp<void, memory_space> const &)arg_prop)
-//            .value;
-//    record_type *const record = record_type::allocate(
-//        ((Kokkos::Impl::ViewCtorProp<void, memory_space> const &)arg_prop)
-//            .value,
-//        ((Kokkos::Impl::ViewCtorProp<void, std::string> const &)arg_prop).value,
-//        alloc_size);
-//
-//#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-//    if (alloc_size) {
-//#endif
-//      //m_handle = handle_type(reinterpret_cast<pointer_type>(record->data()) , record // TODO DZP: what should this be?
-//      m_handle = handle_type(reinterpret_cast<pointer_type>(record->data(), record) // TODO DZP: what should this be?
-//                             );
-//#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-//    }
-//#endif
-//
-//    //  Only initialize if the allocation is non-zero.
-//    //  May be zero if one of the dimensions is zero.
-//    if (alloc_size && alloc_prop::initialize) {
-//      // Construct values
-//      record->m_destroy.construct_shared_allocation();
-//    }
-//
-//    return record;
-//  }
+  }
+  //  template <class... P>
+  //  Kokkos::Impl::SharedAllocationRecord<> *
+  //  allocate_shared(Kokkos::Impl::ViewCtorProp<P...> const &arg_prop,
+  //                  typename Traits::array_layout const &arg_layout) {
+  //    typedef Kokkos::Impl::ViewCtorProp<P...> alloc_prop;
+  //
+  //    typedef typename alloc_prop::execution_space execution_space;
+  //    typedef typename Traits::memory_space memory_space;
+  //    typedef typename Traits::value_type value_type;
+  //    typedef ViewValueFunctor<execution_space, value_type> functor_type;
+  //    typedef Kokkos::Impl::SharedAllocationRecord<memory_space, functor_type>
+  //        record_type;
+  //
+  //    // Query the mapping for byte-size of allocation.
+  //    // If padding is allowed then pass in sizeof value type
+  //    // for padding computation.
+  //    typedef std::integral_constant<
+  //        unsigned, alloc_prop::allow_padding ? sizeof(value_type) : 0>
+  //        padding;
+  //
+  //    typename Traits::array_layout layout;
+  //    for (int i = 0; i < Traits::rank; i++)
+  //      layout.dimension[i] = arg_layout.dimension[i];
+  //    m_offset = offset_type(padding(), layout);
+  //
+  //    const size_t alloc_size = memory_span();
+  //
+  //    // Create shared memory tracking record with allocate memory from the
+  //    memory
+  //    // space
+  //    auto memspace = ((Kokkos::Impl::ViewCtorProp<void, memory_space> const
+  //    &)arg_prop)
+  //            .value;
+  //    record_type *const record = record_type::allocate(
+  //        ((Kokkos::Impl::ViewCtorProp<void, memory_space> const &)arg_prop)
+  //            .value,
+  //        ((Kokkos::Impl::ViewCtorProp<void, std::string> const
+  //        &)arg_prop).value, alloc_size);
+  //
+  //#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
+  //    if (alloc_size) {
+  //#endif
+  //      //m_handle =
+  //      handle_type(reinterpret_cast<pointer_type>(record->data()) , record //
+  //      TODO DZP: what should this be? m_handle =
+  //      handle_type(reinterpret_cast<pointer_type>(record->data(), record) //
+  //      TODO DZP: what should this be?
+  //                             );
+  //#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
+  //    }
+  //#endif
+  //
+  //    //  Only initialize if the allocation is non-zero.
+  //    //  May be zero if one of the dimensions is zero.
+  //    if (alloc_size && alloc_prop::initialize) {
+  //      // Construct values
+  //      record->m_destroy.construct_shared_allocation();
+  //    }
+  //
+  //    return record;
+  //  }
 };
 
-} // namespace Impl 
+}  // namespace Impl
 namespace Experimental {
 namespace Impl {
 
@@ -985,13 +986,9 @@ class TeamPolicyInternal<Kokkos::Experimental::FakeGPU, Properties...>
 namespace Kokkos {
 namespace Impl {
 
-struct RAIIGPUContext{
-  RAIIGPUContext() {
-    Kokkos::Experimental::FakeGPU::set_on_gpu(true);
-  }
-  ~RAIIGPUContext() {
-    Kokkos::Experimental::FakeGPU::set_on_gpu(false);
-  }
+struct RAIIGPUContext {
+  RAIIGPUContext() { Kokkos::Experimental::FakeGPU::set_on_gpu(true); }
+  ~RAIIGPUContext() { Kokkos::Experimental::FakeGPU::set_on_gpu(false); }
 };
 
 template <class FunctorType, class... Traits>
@@ -1023,7 +1020,7 @@ class ParallelFor<FunctorType, Kokkos::RangePolicy<Traits...>, Kokkos::Experimen
 
  public:
   inline void execute() const {
-    RAIIGPUContext ctx; 
+    RAIIGPUContext ctx;
     this->template exec<typename Policy::work_tag>();
   }
 
@@ -1650,66 +1647,70 @@ class UniqueToken<FakeGPU, UniqueTokenScope::Global> {
 };
 
 }  // namespace Experimental
-	namespace Impl {
+namespace Impl {
 namespace detail {
-template<class...>
-struct Pack{};
+template <class...>
+struct Pack {};
 
-template<class, class...>
+template <class, class...>
 struct converter;
 
-template<class... ProcessedProps>
+template <class... ProcessedProps>
 struct converter<Pack<ProcessedProps...>> {
   using type = Kokkos::View<ProcessedProps...>;
 };
 
-template<class... ProcessedProps, class BaseSpace, class Exec, class Namer, bool Shares, class... Props>
-struct converter<Pack<ProcessedProps...>,Kokkos::Experimental::LogicalMemorySpace<BaseSpace, Exec, Namer, Shares>,Props...> {
-  using type = typename converter<Pack<ProcessedProps...,BaseSpace>,Props...>::type;
+template <class... ProcessedProps, class BaseSpace, class Exec, class Namer,
+          bool Shares, class... Props>
+struct converter<
+    Pack<ProcessedProps...>,
+    Kokkos::Experimental::LogicalMemorySpace<BaseSpace, Exec, Namer, Shares>,
+    Props...> {
+  using type =
+      typename converter<Pack<ProcessedProps..., BaseSpace>, Props...>::type;
 };
 
-template<class... ProcessedProps, class Prop, class... Props>
-struct converter<Pack<ProcessedProps...>,Prop,Props...> {
-  using type = typename converter<Pack<ProcessedProps...,Prop>,Props...>::type;
+template <class... ProcessedProps, class Prop, class... Props>
+struct converter<Pack<ProcessedProps...>, Prop, Props...> {
+  using type =
+      typename converter<Pack<ProcessedProps..., Prop>, Props...>::type;
 };
 
+}  // namespace detail
 
-}
-
-template<class View>
+template <class View>
 struct LogicalToBase;
 
-template<class... Props>
+template <class... Props>
 struct LogicalToBase<Kokkos::View<Props...>> {
   using type = typename detail::converter<detail::Pack<>, Props...>::type;
 };
 
-template<class Value>
+template <class Value>
 struct LogicalToBase {
   using type = Value;
 };
 
-template<class View>
+template <class View>
 using not_logical_view = std::is_same<View, typename LogicalToBase<View>::type>;
-} // namespace Impl
-template<typename Src>
+}  // namespace Impl
+template <typename Src>
 inline auto create_mirror(
-  const Src& src,
-  typename std::enable_if<!Impl::not_logical_view<Src>::value>::type* = nullptr
-  ){
-     using mirror = typename Src::HostMirror;
-     mirror mirr
-         (
-        std::string(src.label()).append("_mirror"),
-        src.rank_dynamic > 0 ? src.extent(0) : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-        src.rank_dynamic > 1 ? src.extent(1) : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-        src.rank_dynamic > 2 ? src.extent(2) : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-        src.rank_dynamic > 3 ? src.extent(3) : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-        src.rank_dynamic > 4 ? src.extent(4) : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-        src.rank_dynamic > 5 ? src.extent(5) : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-        src.rank_dynamic > 6 ? src.extent(6) : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-        src.rank_dynamic > 7 ? src.extent(7) : KOKKOS_IMPL_CTOR_DEFAULT_ARG);
-     return mirr;
+    const Src& src,
+    typename std::enable_if<!Impl::not_logical_view<Src>::value>::type* =
+        nullptr) {
+  using mirror = typename Src::HostMirror;
+  mirror mirr(
+      std::string(src.label()).append("_mirror"),
+      src.rank_dynamic > 0 ? src.extent(0) : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      src.rank_dynamic > 1 ? src.extent(1) : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      src.rank_dynamic > 2 ? src.extent(2) : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      src.rank_dynamic > 3 ? src.extent(3) : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      src.rank_dynamic > 4 ? src.extent(4) : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      src.rank_dynamic > 5 ? src.extent(5) : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      src.rank_dynamic > 6 ? src.extent(6) : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
+      src.rank_dynamic > 7 ? src.extent(7) : KOKKOS_IMPL_CTOR_DEFAULT_ARG);
+  return mirr;
 }
 }  // namespace Kokkos
 
