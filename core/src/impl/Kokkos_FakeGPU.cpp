@@ -58,6 +58,7 @@
 
 namespace Kokkos {
 namespace Experimental {
+	bool FakeGPU::s_on_gpu;
 namespace Impl {
 
 using Kokkos::Impl::HostThreadTeamData;
