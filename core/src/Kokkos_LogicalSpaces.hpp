@@ -394,10 +394,10 @@ struct DeepCopy<
     Kokkos::Experimental::LogicalMemorySpace<
         BaseSpace, DefaultExecutionSpace, Namer, SharesAccessSemanticsWithBase>,
     ExecutionSpace> {
-  DeepCopy(void* dst, void* src, size_t n) {
+  DeepCopy(void* dst, const void* src, size_t n) {
     DeepCopy<BaseSpace, BaseSpace, ExecutionSpace>(dst, src, n);
   }
-  DeepCopy(const ExecutionSpace& exec, void* dst, void* src, size_t n) {
+  DeepCopy(const ExecutionSpace& exec, void* dst, const void* src, size_t n) {
     DeepCopy<BaseSpace, BaseSpace, ExecutionSpace>(exec, dst, src, n);
   }
 };
@@ -410,10 +410,10 @@ struct DeepCopy<
     Kokkos::Experimental::LogicalMemorySpace<
         BaseSpace, DefaultExecutionSpace, Namer, SharesAccessSemanticsWithBase>,
     ExecutionSpace> {
-  DeepCopy(void* dst, void* src, size_t n) {
+  DeepCopy(void* dst,const void* src, size_t n) {
     DeepCopy<SourceSpace, BaseSpace, ExecutionSpace>(dst, src, n);
   }
-  DeepCopy(const ExecutionSpace& exec, void* dst, void* src, size_t n) {
+  DeepCopy(const ExecutionSpace& exec, void* dst, const void* src, size_t n) {
     DeepCopy<SourceSpace, BaseSpace, ExecutionSpace>(exec, dst, src, n);
   }
 };
@@ -425,10 +425,10 @@ struct DeepCopy<
     Kokkos::Experimental::LogicalMemorySpace<
         BaseSpace, DefaultExecutionSpace, Namer, SharesAccessSemanticsWithBase>,
     DestinationSpace, ExecutionSpace> {
-  DeepCopy(void* dst, void* src, size_t n) {
+  DeepCopy(void* dst, const void* src, size_t n) {
     DeepCopy<BaseSpace, DestinationSpace, ExecutionSpace>(dst, src, n);
   }
-  DeepCopy(const ExecutionSpace& exec, void* dst, void* src, size_t n) {
+  DeepCopy(const ExecutionSpace& exec, void* dst, const void* src, size_t n) {
     DeepCopy<BaseSpace, DestinationSpace, ExecutionSpace>(exec, dst, src, n);
   }
 };

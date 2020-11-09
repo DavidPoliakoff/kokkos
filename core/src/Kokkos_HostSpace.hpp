@@ -60,7 +60,6 @@
 #include <impl/Kokkos_Tools.hpp>
 
 #include "impl/Kokkos_HostSpace_deepcopy.hpp"
-
 /*--------------------------------------------------------------------------*/
 
 namespace Kokkos {
@@ -99,6 +98,7 @@ namespace Experimental {
 // forward declaration
 template <class, class, class, bool>
 class LogicalMemorySpace;
+
 }  // namespace Experimental
 /// \class HostSpace
 /// \brief Memory management for host memory.
@@ -108,6 +108,7 @@ class LogicalMemorySpace;
 class HostSpace {
  public:
   //! Tag this class as a kokkos memory space
+  //
   using memory_space = HostSpace;
   using size_type    = size_t;
 

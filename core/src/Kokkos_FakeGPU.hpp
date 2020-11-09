@@ -295,7 +295,8 @@ struct ViewTraits<void, Kokkos::Experimental::FakeGPUSpace, Prop...> {
   using specialize      = Impl::FakeSpaceTag;
   using memory_space    = Kokkos::Experimental::FakeGPUSpace;
   using execution_space = memory_space::execution_space;
-  using array_layout    = execution_space::array_layout;
+  //using array_layout    = execution_space::array_layout;
+  using array_layout    = Kokkos::LayoutLeft;
   using HostMirror      = Kokkos::Experimental::FakeHostSpace;
   using HostMirrorSpace = Kokkos::Experimental::FakeHostSpace;
   using memory_traits   = typename ViewTraits<void, Prop...>::memory_traits;
@@ -307,7 +308,8 @@ struct ViewTraits<void, Kokkos::Experimental::FakeHostSpace, Prop...> {
   using specialize      = Impl::FakeSpaceTag;
   using memory_space    = Kokkos::Experimental::FakeHostSpace;
   using execution_space = memory_space::execution_space;
-  using array_layout    = execution_space::array_layout;
+  //using array_layout    = execution_space::array_layout;
+  using array_layout    = Kokkos::LayoutRight;
   using HostMirror      = Kokkos::Experimental::FakeHostSpace;
   using HostMirrorSpace = Kokkos::Experimental::FakeHostSpace;
   using memory_traits   = typename ViewTraits<void, Prop...>::memory_traits;

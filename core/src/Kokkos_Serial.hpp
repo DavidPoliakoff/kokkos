@@ -57,6 +57,7 @@
 #include <Kokkos_Parallel.hpp>
 #include <Kokkos_TaskScheduler.hpp>
 #include <Kokkos_Layout.hpp>
+#include <Kokkos_FakeGPU.hpp>
 #include <Kokkos_HostSpace.hpp>
 #include <Kokkos_ScratchSpace.hpp>
 #include <Kokkos_MemoryTraits.hpp>
@@ -92,15 +93,16 @@ class Serial {
 
   //! Tag this class as an execution space:
   using execution_space = Serial;
+  using array_layout = LayoutRight;
   //! This device's preferred memory space.
-  using memory_space = Kokkos::HostSpace;
+  //using memory_space = Kokkos::HostSpace;
+  using memory_space = Kokkos::Experimental::FakeHostSpace;
   //! The size_type alias best suited for this device.
   using size_type = memory_space::size_type;
   //! This execution space preferred device_type
   using device_type = Kokkos::Device<execution_space, memory_space>;
 
   //! This device's preferred array layout.
-  using array_layout = LayoutRight;
 
   /// \brief  Scratch memory space
   using scratch_memory_space = ScratchMemorySpace<Kokkos::Serial>;
