@@ -112,233 +112,72 @@ bool profileLibraryLoaded() {
 
 void beginParallelFor(const std::string& kernelPrefix, const uint32_t devID,
                       uint64_t* kernelID) {
-  if (Experimental::current_callbacks.begin_parallel_for != nullptr) {
-#ifndef KOKKOS_IMPL_SIMULATE_LAUNCH_LATENCY
-    Kokkos::fence();
-#endif
-    (*Experimental::current_callbacks.begin_parallel_for)(kernelPrefix.c_str(),
-                                                          devID, kernelID);
-  }
-#ifdef KOKKOS_ENABLE_TUNING
-  if (Kokkos::tune_internals()) {
-    auto context_id = Experimental::get_new_context_id();
-    Experimental::begin_context(context_id);
-    Experimental::VariableValue contextValues[] = {
-        Experimental::make_variable_value(
-            Experimental::kernel_name_context_variable_id, kernelPrefix),
-        Experimental::make_variable_value(
-            Experimental::kernel_type_context_variable_id, "parallel_for")};
-    Experimental::set_input_values(context_id, 2, contextValues);
-  }
-#endif
 }
 
 void endParallelFor(const uint64_t kernelID) {
-  if (Experimental::current_callbacks.end_parallel_for != nullptr) {
-#ifndef KOKKOS_IMPL_SIMULATE_LAUNCH_LATENCY
-    Kokkos::fence();
-#endif
-    (*Experimental::current_callbacks.end_parallel_for)(kernelID);
-  }
-#ifdef KOKKOS_ENABLE_TUNING
-  if (Kokkos::tune_internals()) {
-    Experimental::end_context(Experimental::get_current_context_id());
-  }
-#endif
 }
 
 void beginParallelScan(const std::string& kernelPrefix, const uint32_t devID,
                        uint64_t* kernelID) {
-  if (Experimental::current_callbacks.begin_parallel_scan != nullptr) {
-#ifndef KOKKOS_IMPL_SIMULATE_LAUNCH_LATENCY
-    Kokkos::fence();
-#endif
-    (*Experimental::current_callbacks.begin_parallel_scan)(kernelPrefix.c_str(),
-                                                           devID, kernelID);
-  }
-#ifdef KOKKOS_ENABLE_TUNING
-  if (Kokkos::tune_internals()) {
-    auto context_id = Experimental::get_new_context_id();
-    Experimental::begin_context(context_id);
-    Experimental::VariableValue contextValues[] = {
-        Experimental::make_variable_value(
-            Experimental::kernel_name_context_variable_id, kernelPrefix),
-        Experimental::make_variable_value(
-            Experimental::kernel_type_context_variable_id, "parallel_for")};
-    Experimental::set_input_values(context_id, 2, contextValues);
-  }
-#endif
 }
 
 void endParallelScan(const uint64_t kernelID) {
-  if (Experimental::current_callbacks.end_parallel_scan != nullptr) {
-#ifndef KOKKOS_IMPL_SIMULATE_LAUNCH_LATENCY
-    Kokkos::fence();
-#endif
-    (*Experimental::current_callbacks.end_parallel_scan)(kernelID);
-  }
-#ifdef KOKKOS_ENABLE_TUNING
-  if (Kokkos::tune_internals()) {
-    Experimental::end_context(Experimental::get_current_context_id());
-  }
-#endif
 }
 
 void beginParallelReduce(const std::string& kernelPrefix, const uint32_t devID,
                          uint64_t* kernelID) {
-  if (Experimental::current_callbacks.begin_parallel_reduce != nullptr) {
-#ifndef KOKKOS_IMPL_SIMULATE_LAUNCH_LATENCY
-    Kokkos::fence();
-#endif
-    (*Experimental::current_callbacks.begin_parallel_reduce)(
-        kernelPrefix.c_str(), devID, kernelID);
-  }
-#ifdef KOKKOS_ENABLE_TUNING
-  if (Kokkos::tune_internals()) {
-    auto context_id = Experimental::get_new_context_id();
-    Experimental::begin_context(context_id);
-    Experimental::VariableValue contextValues[] = {
-        Experimental::make_variable_value(
-            Experimental::kernel_name_context_variable_id, kernelPrefix),
-        Experimental::make_variable_value(
-            Experimental::kernel_type_context_variable_id, "parallel_for")};
-    Experimental::set_input_values(context_id, 2, contextValues);
-  }
-#endif
 }
 
 void endParallelReduce(const uint64_t kernelID) {
-  if (Experimental::current_callbacks.end_parallel_reduce != nullptr) {
-#ifndef KOKKOS_IMPL_SIMULATE_LAUNCH_LATENCY
-    Kokkos::fence();
-#endif
-    (*Experimental::current_callbacks.end_parallel_reduce)(kernelID);
-  }
-#ifdef KOKKOS_ENABLE_TUNING
-  if (Kokkos::tune_internals()) {
-    Experimental::end_context(Experimental::get_current_context_id());
-  }
-#endif
 }
 
 void pushRegion(const std::string& kName) {
-  if (Experimental::current_callbacks.push_region != nullptr) {
-    Kokkos::fence();
-    (*Experimental::current_callbacks.push_region)(kName.c_str());
-  }
 }
 
 void popRegion() {
-  if (Experimental::current_callbacks.pop_region != nullptr) {
-    Kokkos::fence();
-    (*Experimental::current_callbacks.pop_region)();
-  }
 }
 
 void allocateData(const SpaceHandle space, const std::string label,
                   const void* ptr, const uint64_t size) {
-  if (Experimental::current_callbacks.allocate_data != nullptr) {
-    (*Experimental::current_callbacks.allocate_data)(space, label.c_str(), ptr,
-                                                     size);
-  }
 }
 
 void deallocateData(const SpaceHandle space, const std::string label,
                     const void* ptr, const uint64_t size) {
-  if (Experimental::current_callbacks.deallocate_data != nullptr) {
-    (*Experimental::current_callbacks.deallocate_data)(space, label.c_str(),
-                                                       ptr, size);
-  }
 }
 
 void beginDeepCopy(const SpaceHandle dst_space, const std::string dst_label,
                    const void* dst_ptr, const SpaceHandle src_space,
                    const std::string src_label, const void* src_ptr,
                    const uint64_t size) {
-  if (Experimental::current_callbacks.begin_deep_copy != nullptr) {
-    (*Experimental::current_callbacks.begin_deep_copy)(
-        dst_space, dst_label.c_str(), dst_ptr, src_space, src_label.c_str(),
-        src_ptr, size);
-#ifdef KOKKOS_ENABLE_TUNING
-    if (Kokkos::tune_internals()) {
-      auto context_id = Experimental::get_new_context_id();
-      Experimental::begin_context(context_id);
-      Experimental::VariableValue contextValues[] = {
-          Experimental::make_variable_value(
-              Experimental::kernel_name_context_variable_id,
-              "deep_copy_kernel"),
-          Experimental::make_variable_value(
-              Experimental::kernel_type_context_variable_id, "deep_copy")};
-      Experimental::set_input_values(context_id, 2, contextValues);
-    }
-#endif
-  }
 }
 
 void endDeepCopy() {
-  if (Experimental::current_callbacks.end_deep_copy != nullptr) {
-    (*Experimental::current_callbacks.end_deep_copy)();
-#ifdef KOKKOS_ENABLE_TUNING
-    if (Kokkos::tune_internals()) {
-      Experimental::end_context(Experimental::get_current_context_id());
-    }
-#endif
-  }
 }
 
 void beginFence(const std::string name, const uint32_t deviceId,
                 uint64_t* handle) {
-  if (Experimental::current_callbacks.begin_fence != nullptr) {
-    (*Experimental::current_callbacks.begin_fence)(name.c_str(), deviceId,
-                                                   handle);
-  }
 }
 
 void endFence(const uint64_t handle) {
-  if (Experimental::current_callbacks.end_fence != nullptr) {
-    (*Experimental::current_callbacks.end_fence)(handle);
-  }
 }
 
 void createProfileSection(const std::string& sectionName, uint32_t* secID) {
-  if (Experimental::current_callbacks.create_profile_section != nullptr) {
-    (*Experimental::current_callbacks.create_profile_section)(
-        sectionName.c_str(), secID);
-  }
 }
 
 void startSection(const uint32_t secID) {
-  if (Experimental::current_callbacks.start_profile_section != nullptr) {
-    (*Experimental::current_callbacks.start_profile_section)(secID);
-  }
 }
 
 void stopSection(const uint32_t secID) {
-  if (Experimental::current_callbacks.stop_profile_section != nullptr) {
-    (*Experimental::current_callbacks.stop_profile_section)(secID);
-  }
 }
 
 void destroyProfileSection(const uint32_t secID) {
-  if (Experimental::current_callbacks.destroy_profile_section != nullptr) {
-    (*Experimental::current_callbacks.destroy_profile_section)(secID);
-  }
 }
 
 void markEvent(const std::string& eventName) {
-  if (Experimental::current_callbacks.profile_event != nullptr) {
-    (*Experimental::current_callbacks.profile_event)(eventName.c_str());
-  }
 }
 
 bool printHelp(const std::string& args) {
-  if (Experimental::current_callbacks.print_help == nullptr) {
-    return false;
-  }
-  std::string arg0  = args.substr(0, args.find_first_of(' '));
-  const char* carg0 = arg0.c_str();
-  (*Experimental::current_callbacks.print_help)(const_cast<char*>(carg0));
-  return true;
+  return false;
 }
 
 void parseArgs(int _argc, char** _argv) {
@@ -649,24 +488,12 @@ void finalize() {
 
 void syncDualView(const std::string& label, const void* const ptr,
                   bool to_device) {
-  if (Experimental::current_callbacks.sync_dual_view != nullptr) {
-    (*Experimental::current_callbacks.sync_dual_view)(label.c_str(), ptr,
-                                                      to_device);
-  }
 }
 void modifyDualView(const std::string& label, const void* const ptr,
                     bool on_device) {
-  if (Experimental::current_callbacks.modify_dual_view != nullptr) {
-    (*Experimental::current_callbacks.modify_dual_view)(label.c_str(), ptr,
-                                                        on_device);
-  }
 }
 
 void declareMetadata(const std::string& key, const std::string& value) {
-  if (Experimental::current_callbacks.declare_metadata != nullptr) {
-    (*Experimental::current_callbacks.declare_metadata)(key.c_str(),
-                                                        value.c_str());
-  }
 }
 
 }  // namespace Tools
@@ -674,190 +501,141 @@ void declareMetadata(const std::string& key, const std::string& value) {
 namespace Tools {
 namespace Experimental {
 void set_init_callback(initFunction callback) {
-  current_callbacks.init = callback;
 }
 void set_finalize_callback(finalizeFunction callback) {
-  current_callbacks.finalize = callback;
 }
 void set_parse_args_callback(parseArgsFunction callback) {
-  current_callbacks.parse_args = callback;
 }
 void set_print_help_callback(printHelpFunction callback) {
-  current_callbacks.print_help = callback;
 }
 void set_begin_parallel_for_callback(beginFunction callback) {
-  current_callbacks.begin_parallel_for = callback;
 }
 void set_end_parallel_for_callback(endFunction callback) {
-  current_callbacks.end_parallel_for = callback;
 }
 void set_begin_parallel_reduce_callback(beginFunction callback) {
-  current_callbacks.begin_parallel_reduce = callback;
 }
 void set_end_parallel_reduce_callback(endFunction callback) {
-  current_callbacks.end_parallel_reduce = callback;
 }
 void set_begin_parallel_scan_callback(beginFunction callback) {
-  current_callbacks.begin_parallel_scan = callback;
 }
 void set_end_parallel_scan_callback(endFunction callback) {
-  current_callbacks.end_parallel_scan = callback;
 }
 void set_push_region_callback(pushFunction callback) {
-  current_callbacks.push_region = callback;
 }
 void set_pop_region_callback(popFunction callback) {
-  current_callbacks.pop_region = callback;
 }
 void set_allocate_data_callback(allocateDataFunction callback) {
-  current_callbacks.allocate_data = callback;
 }
 void set_deallocate_data_callback(deallocateDataFunction callback) {
-  current_callbacks.deallocate_data = callback;
 }
 void set_create_profile_section_callback(
     createProfileSectionFunction callback) {
-  current_callbacks.create_profile_section = callback;
 }
 void set_start_profile_section_callback(startProfileSectionFunction callback) {
-  current_callbacks.start_profile_section = callback;
 }
 void set_stop_profile_section_callback(stopProfileSectionFunction callback) {
-  current_callbacks.stop_profile_section = callback;
 }
 void set_destroy_profile_section_callback(
     destroyProfileSectionFunction callback) {
-  current_callbacks.destroy_profile_section = callback;
 }
 void set_profile_event_callback(profileEventFunction callback) {
-  current_callbacks.profile_event = callback;
 }
 void set_begin_deep_copy_callback(beginDeepCopyFunction callback) {
-  current_callbacks.begin_deep_copy = callback;
 }
 void set_end_deep_copy_callback(endDeepCopyFunction callback) {
-  current_callbacks.end_deep_copy = callback;
 }
 void set_begin_fence_callback(beginFenceFunction callback) {
-  current_callbacks.begin_fence = callback;
 }
 void set_end_fence_callback(endFenceFunction callback) {
-  current_callbacks.end_fence = callback;
 }
 
 void set_dual_view_sync_callback(dualViewSyncFunction callback) {
-  current_callbacks.sync_dual_view = callback;
 }
 void set_dual_view_modify_callback(dualViewModifyFunction callback) {
-  current_callbacks.modify_dual_view = callback;
 }
 void set_declare_metadata_callback(declareMetadataFunction callback) {
-  current_callbacks.declare_metadata = callback;
 }
 
 void set_declare_output_type_callback(outputTypeDeclarationFunction callback) {
-  current_callbacks.declare_output_type = callback;
 }
 void set_declare_input_type_callback(inputTypeDeclarationFunction callback) {
-  current_callbacks.declare_input_type = callback;
 }
 void set_request_output_values_callback(requestValueFunction callback) {
-  current_callbacks.request_output_values = callback;
 }
 void set_end_context_callback(contextEndFunction callback) {
-  current_callbacks.end_tuning_context = callback;
 }
 void set_begin_context_callback(contextBeginFunction callback) {
-  current_callbacks.begin_tuning_context = callback;
 }
 void set_declare_optimization_goal_callback(
     optimizationGoalDeclarationFunction callback) {
-  current_callbacks.declare_optimization_goal = callback;
 }
 
 void pause_tools() {
-  backup_callbacks  = current_callbacks;
-  current_callbacks = no_profiling;
 }
 
-void resume_tools() { current_callbacks = backup_callbacks; }
+void resume_tools() {}
 
 EventSet get_callbacks() { return current_callbacks; }
-void set_callbacks(EventSet new_events) { current_callbacks = new_events; }
+void set_callbacks(EventSet new_events) {}
 }  // namespace Experimental
 }  // namespace Tools
 
 namespace Profiling {
-bool profileLibraryLoaded() { return Kokkos::Tools::profileLibraryLoaded(); }
+bool profileLibraryLoaded() { return false; }
 
 void beginParallelFor(const std::string& kernelPrefix, const uint32_t devID,
                       uint64_t* kernelID) {
-  Kokkos::Tools::beginParallelFor(kernelPrefix, devID, kernelID);
 }
 void beginParallelReduce(const std::string& kernelPrefix, const uint32_t devID,
                          uint64_t* kernelID) {
-  Kokkos::Tools::beginParallelReduce(kernelPrefix, devID, kernelID);
 }
 void beginParallelScan(const std::string& kernelPrefix, const uint32_t devID,
                        uint64_t* kernelID) {
-  Kokkos::Tools::beginParallelScan(kernelPrefix, devID, kernelID);
 }
 void endParallelFor(const uint64_t kernelID) {
-  Kokkos::Tools::endParallelFor(kernelID);
 }
 void endParallelReduce(const uint64_t kernelID) {
-  Kokkos::Tools::endParallelReduce(kernelID);
 }
 void endParallelScan(const uint64_t kernelID) {
-  Kokkos::Tools::endParallelScan(kernelID);
 }
 
-void pushRegion(const std::string& kName) { Kokkos::Tools::pushRegion(kName); }
-void popRegion() { Kokkos::Tools::popRegion(); }
+void pushRegion(const std::string& kName) {}
+void popRegion() {}
 
 void createProfileSection(const std::string& sectionName, uint32_t* secID) {
-  Kokkos::Tools::createProfileSection(sectionName, secID);
 }
 void destroyProfileSection(const uint32_t secID) {
-  Kokkos::Tools::destroyProfileSection(secID);
 }
 
-void startSection(const uint32_t secID) { Kokkos::Tools::startSection(secID); }
+void startSection(const uint32_t secID) {}
 
-void stopSection(const uint32_t secID) { Kokkos::Tools::stopSection(secID); }
+void stopSection(const uint32_t secID) {}
 
 void markEvent(const std::string& eventName) {
-  Kokkos::Tools::markEvent(eventName);
 }
 void allocateData(const SpaceHandle handle, const std::string name,
                   const void* data, const uint64_t size) {
-  Kokkos::Tools::allocateData(handle, name, data, size);
 }
 void deallocateData(const SpaceHandle space, const std::string label,
                     const void* ptr, const uint64_t size) {
-  Kokkos::Tools::deallocateData(space, label, ptr, size);
 }
 
 void beginDeepCopy(const SpaceHandle dst_space, const std::string dst_label,
                    const void* dst_ptr, const SpaceHandle src_space,
                    const std::string src_label, const void* src_ptr,
                    const uint64_t size) {
-  Kokkos::Tools::beginDeepCopy(dst_space, dst_label, dst_ptr, src_space,
-                               src_label, src_ptr, size);
 }
-void endDeepCopy() { Kokkos::Tools::endDeepCopy(); }
+void endDeepCopy() {}
 
-void finalize() { Kokkos::Tools::finalize(); }
+void finalize() {}
 void initialize(const std::string& profileLibrary) {
-  Kokkos::Tools::initialize(profileLibrary);
 }
 
 bool printHelp(const std::string& args) {
-  return Kokkos::Tools::printHelp(args);
+	return false;
 }
-void parseArgs(const std::string& args) { Kokkos::Tools::parseArgs(args); }
+void parseArgs(const std::string& args) {}
 void parseArgs(int _argc, char** _argv) {
-  Kokkos::Tools::parseArgs(_argc, _argv);
 }
 
 SpaceHandle make_space_handle(const char* space_name) {
@@ -888,72 +666,19 @@ size_t get_new_variable_id() { return get_variable_counter(); }
 
 size_t declare_output_type(const std::string& variableName, VariableInfo info) {
   size_t variableId = get_new_variable_id();
-#ifdef KOKKOS_ENABLE_TUNING
-  if (Experimental::current_callbacks.declare_output_type != nullptr) {
-    (*Experimental::current_callbacks.declare_output_type)(variableName.c_str(),
-                                                           variableId, &info);
-  }
-  variable_metadata[variableId] = info;
-#else
-  (void)variableName;
-  (void)info;
-#endif
   return variableId;
 }
 
 size_t declare_input_type(const std::string& variableName, VariableInfo info) {
   size_t variableId = get_new_variable_id();
-#ifdef KOKKOS_ENABLE_TUNING
-  if (Experimental::current_callbacks.declare_input_type != nullptr) {
-    (*Experimental::current_callbacks.declare_input_type)(variableName.c_str(),
-                                                          variableId, &info);
-  }
-  variable_metadata[variableId] = info;
-#else
-  (void)variableName;
-  (void)info;
-#endif
   return variableId;
 }
 
 void set_input_values(size_t contextId, size_t count, VariableValue* values) {
-#ifdef KOKKOS_ENABLE_TUNING
-  if (features_per_context.find(contextId) == features_per_context.end()) {
-    features_per_context[contextId] = std::unordered_set<size_t>();
-  }
-  for (size_t x = 0; x < count; ++x) {
-    values[x].metadata = &variable_metadata[values[x].type_id];
-    features_per_context[contextId].insert(values[x].type_id);
-    active_features.insert(values[x].type_id);
-    feature_values[values[x].type_id] = values[x];
-  }
-#else
-  (void)contextId;
-  (void)count;
-  (void)values;
-#endif
 }
 #include <iostream>
 void request_output_values(size_t contextId, size_t count,
                            VariableValue* values) {
-#ifdef KOKKOS_ENABLE_TUNING
-  std::vector<size_t> context_ids;
-  std::vector<VariableValue> context_values;
-  for (auto id : active_features) {
-    context_values.push_back(feature_values[id]);
-  }
-  if (Experimental::current_callbacks.request_output_values != nullptr) {
-    for (size_t x = 0; x < count; ++x) {
-      values[x].metadata = &variable_metadata[values[x].type_id];
-    }
-    (*Experimental::current_callbacks.request_output_values)(
-        contextId, context_values.size(), context_values.data(), count, values);
-  }
-#else
-  (void)contextId;
-  (void)count;
-  (void)values;
-#endif
 }
 
 #ifdef KOKKOS_ENABLE_TUNING
@@ -961,32 +686,12 @@ static std::unordered_map<size_t, size_t> optimization_goals;
 #endif
 
 void begin_context(size_t contextId) {
-  if (Experimental::current_callbacks.begin_tuning_context != nullptr) {
-    (*Experimental::current_callbacks.begin_tuning_context)(contextId);
-  }
 }
 void end_context(size_t contextId) {
-#ifdef KOKKOS_ENABLE_TUNING
-  for (auto id : features_per_context[contextId]) {
-    active_features.erase(id);
-  }
-  if (Experimental::current_callbacks.end_tuning_context != nullptr) {
-    (*Experimental::current_callbacks.end_tuning_context)(
-        contextId, feature_values[optimization_goals[contextId]]);
-  }
-  optimization_goals.erase(contextId);
-  decrement_current_context_id();
-#else
-  (void)contextId;
-#endif
 }
 
 bool have_tuning_tool() {
-#ifdef KOKKOS_ENABLE_TUNING
-  return (Experimental::current_callbacks.request_output_values != nullptr);
-#else
   return false;
-#endif
 }
 
 VariableValue make_variable_value(size_t id, int64_t val) {
@@ -1060,15 +765,6 @@ void decrement_current_context_id();
 size_t get_new_variable_id();
 void declare_optimization_goal(const size_t context,
                                const OptimizationGoal& goal) {
-#ifdef KOKKOS_ENABLE_TUNING
-  if (Experimental::current_callbacks.declare_optimization_goal != nullptr) {
-    (*Experimental::current_callbacks.declare_optimization_goal)(context, goal);
-  }
-  optimization_goals[context] = goal.type_id;
-#else
-  (void)context;
-  (void)goal;
-#endif
 }
 }  // end namespace Experimental
 }  // end namespace Tools
