@@ -587,7 +587,6 @@ KOKKOS_ADD_EXECUTABLE_AND_TEST(
 KOKKOS_ADD_EXECUTABLE_AND_TEST(
   UnitTest_Develop
   SOURCES
-    UnitTestMainInit.cpp
     default/TestDefaultDeviceDevelop.cpp
 )
 

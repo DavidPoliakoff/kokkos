@@ -47,10 +47,20 @@
 
 #include <Kokkos_Core.hpp>
 
-#include <default/TestDefaultDeviceType_Category.hpp>
-
-namespace Test {
-
-TEST(defaultdevicetype, development_test) {}
-
-}  // namespace Test
+#include <iostream>
+int main(int argc, char* argv[]) {
+  Kokkos::initialize(argc, argv);
+  {
+    constexpr const int data_size = 10000000;
+    constexpr const int num_iters = 350000;
+    constexpr const int dimension = 100;
+    Kokkos::View<float***, Kokkos::LayoutLeft, Kokkos::HostSpace> left(
+        "left", dimension, dimension, dimension);
+    Kokkos::View<float***, Kokkos::LayoutRight, Kokkos::HostSpace> right(
+        "right", dimension, dimension, dimension);
+    for (int x = 0; x < num_iters; ++x) {
+      Kokkos::deep_copy(right, left);
+    }
+  }
+  Kokkos::finalize();
+}
