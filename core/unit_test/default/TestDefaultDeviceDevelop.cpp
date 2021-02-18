@@ -74,6 +74,21 @@ struct cthulhu {
     }
   }
 };
+
+size_t get_name_id(){
+  using namespace Kokkos::Tools::Experimental;
+  static bool initialized;
+  static size_t id;
+  if(!initialized) {
+    VariableInfo info;
+    info.type = ValueType::kokkos_value_string;
+    info.category = StatisticalCategory::kokkos_value_categorical;
+    info.valueQuantity = CandidateValueType::kokkos_value_unbounded;
+    id = Kokkos::Tools::Experimental::declare_input_type("cthulhu_name", info);
+    initialized = true;
+  }
+  return id;
+}
 template <class... Kernels>
 auto fastest_of(std::string name, Kernels... kernels) {
   constexpr size_t num_kernels = sizeof...(kernels);
@@ -98,10 +113,13 @@ auto fastest_of(std::string name, Kernels... kernels) {
     return my_tuner;
   }();
   auto context = Kokkos::Tools::Experimental::get_new_context_id();
+  size_t name_id = get_name_id();
+  Kokkos::Tools::Experimental::VariableValue name_value = Kokkos::Tools::Experimental::make_variable_value(name_id, name);
   Kokkos::Tools::Experimental::begin_context(context);
   Kokkos::Tools::Experimental::VariableValue default_value =
       Kokkos::Tools::Experimental::make_variable_value(id_iter->second,
                                                        int64_t(0));
+  Kokkos::Tools::Experimental::set_input_values(context, 1, &name_value);
   Kokkos::Tools::Experimental::request_output_values(context, 1,
                                                      &default_value);
   cthulhu<num_kernels>::execute(default_value.value.int_value, kernels...);
@@ -109,6 +127,7 @@ auto fastest_of(std::string name, Kernels... kernels) {
 }
 
 int main(int argc, char* argv[]) {
+  using namespace Kokkos::Tools::Experimental;
   Kokkos::initialize(argc, argv);
   {
     int num_iters                 = 3500000;
