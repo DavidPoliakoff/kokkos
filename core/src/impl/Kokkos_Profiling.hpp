@@ -46,6 +46,7 @@
 #define KOKKOS_IMPL_KOKKOS_PROFILING_HPP
 
 #include <Kokkos_Core_fwd.hpp>
+#include <iostream>
 #include <Kokkos_ExecPolicy.hpp>
 #include <Kokkos_Macros.hpp>
 #include <Kokkos_Tuners.hpp>

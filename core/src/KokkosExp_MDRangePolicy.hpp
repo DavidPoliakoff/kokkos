@@ -347,6 +347,7 @@ struct MDRangePolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
 
   void impl_change_tile_size(const point_type& tile) {
     m_tile = tile;
+    m_prod_tile_dims = 1;
     init_helper(Impl::get_tile_size_properties(m_space));
   }
   bool impl_tune_tile_size() const { return m_tune_tile_size; }
