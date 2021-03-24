@@ -42,39 +42,56 @@
 //@HEADER
 */
 
-#ifndef KOKKOS_KOKKOS_TRAITS_FWD_HPP
-#define KOKKOS_KOKKOS_TRAITS_FWD_HPP
+#ifndef KOKKOS_KOKKOS_VIEWHOOKMECHANISMTRAIT_HPP
+#define KOKKOS_KOKKOS_VIEWHOOKMECHANISMTRAIT_HPP
+
+#include <Kokkos_Macros.hpp>
+#include <Kokkos_Concepts.hpp>  // is_view_hook_mechanism
+#include <traits/Kokkos_PolicyTraitAdaptor.hpp>
+#include <traits/Kokkos_Traits_fwd.hpp>
 
 namespace Kokkos {
 namespace Impl {
 
-template <class Enable, class... TraitsList>
-struct AnalyzeExecPolicy;
+//==============================================================================
+// <editor-fold desc="trait specification"> {{{1
 
-template <class AnalysisResults>
-struct ExecPolicyTraitsWithDefaults;
+struct ViewHookMechanismTrait : TraitSpecificationBase<ViewHookMechanismTrait> {
+  // MSVC workaround for linearizing base classes (see Impl::linearize_bases)
+  template <template <class> class GetBase, class... OtherTraits>
+  struct base_traits : linearize_bases<GetBase, OtherTraits...> {
+    static constexpr auto execution_space_is_defaulted = true;
 
-template <class TraitSpec, template <class...> class PolicyTemplate,
-          class AlreadyProcessedList, class ToProcessList, class NewTrait,
-          class Enable = void>
-struct PolicyTraitAdaptorImpl;
+    using execution_space = Kokkos::DefaultExecutionSpace;
+  };
+  template <class T>
+  using trait_matches_specification = is_view_hook_mechanism<T>;
+};
 
-template <class TraitSpec, class Policy, class NewTrait>
-struct PolicyTraitAdaptor;
+// </editor-fold> end trait specification }}}1
+//==============================================================================
 
-// A tag class for dependent defaults that must be handled by the
-// ExecPolicyTraitsWithDefaults wrapper, since their defaults depend on other
-// traits
-struct dependent_policy_trait_default;
+//==============================================================================
+// <editor-fold desc="AnalyzeExecPolicy specializations"> {{{1
 
-template <class Enable, class... TraitsList>
-struct AnalyzeView;
+template <class ViewHookMechanism, class... Traits>
+struct AnalyzeExecPolicy<
+    std::enable_if_t<Kokkos::is_view_hook_mechanism<ViewHookMechanism>::value>,
+ViewHookMechanism, Traits...> : AnalyzeExecPolicy<void, Traits...> {
+using base_t = AnalyzeExecPolicy<void, Traits...>;
+using base_t::base_t;
 
-template <class AnalysisResults>
-struct ViewTraitsWithDefaults;
+static_assert(base_t::view_hook_mechanism_is_defaulted,
+              "Kokkos Error: More than one view hook mechanism given");
 
+static constexpr bool view_hook_mechanism_is_defaulted = false;
 
+using view_hook_mechanism = ViewHookMechanism;
+};
+
+// </editor-fold> end AnalyzeExecPolicy specializations }}}1
+//==============================================================================
 }  // end namespace Impl
 }  // end namespace Kokkos
 
-#endif  // KOKKOS_KOKKOS_TRAITS_FWD_HPP
+#endif  // KOKKOS_KOKKOS_VIEWHOOKMECHANISMTRAIT_HPP
