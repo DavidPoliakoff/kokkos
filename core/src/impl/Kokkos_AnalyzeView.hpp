@@ -99,10 +99,10 @@ struct AnalyzeView<void>
   // Base converting constructor and assignment operator: unless an individual
   // policy analysis deletes a constructor, assume it's convertible
   template <class Other>
-  AnalyzeExecPolicy(ViewTraitsWithDefaults<Other> const&) {}
+  AnalyzeView(ViewTraitsWithDefaults<Other> const&) {}
 
   template <class Other>
-  AnalyzeExecPolicy& operator=(ViewTraitsWithDefaults<Other> const&) {
+  AnalyzeView& operator=(ViewTraitsWithDefaults<Other> const&) {
     return *this;
   }
 };
