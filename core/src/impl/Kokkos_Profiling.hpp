@@ -176,6 +176,50 @@ void resume_tools();
 
 EventSet get_callbacks();
 void set_callbacks(EventSet new_events);
+
+namespace Dogpark {
+
+  template<typename Functor>
+  using multi_callback = std::vector<Functor>;
+
+  void extend_init_callback(initFunction callback);
+  void extend_finalize_callback(finalizeFunction callback);
+  void extend_parse_args_callback(parseArgsFunction callback);
+  void extend_print_help_callback(printHelpFunction callback);
+  void extend_begin_parallel_for_callback(beginFunction callback);
+  void extend_end_parallel_for_callback(endFunction callback);
+  void extend_begin_parallel_reduce_callback(beginFunction callback);
+  void extend_end_parallel_reduce_callback(endFunction callback);
+  void extend_begin_parallel_scan_callback(beginFunction callback);
+  void extend_end_parallel_scan_callback(endFunction callback);
+  void extend_push_region_callback(pushFunction callback);
+  void extend_pop_region_callback(popFunction callback);
+  void extend_allocate_data_callback(allocateDataFunction callback);
+  void extend_deallocate_data_callback(deallocateDataFunction callback);
+  void extend_create_profile_section_callback(createProfileSectionFunction callback);
+  void extend_start_profile_section_callback(startProfileSectionFunction callback);
+  void extend_stop_profile_section_callback(stopProfileSectionFunction callback);
+  void extend_destroy_profile_section_callback(
+          destroyProfileSectionFunction callback);
+  void extend_profile_event_callback(profileEventFunction callback);
+  void extend_begin_deep_copy_callback(beginDeepCopyFunction callback);
+  void extend_end_deep_copy_callback(endDeepCopyFunction callback);
+  void extend_begin_fence_callback(beginFenceFunction callback);
+  void extend_end_fence_callback(endFenceFunction callback);
+  void extend_dual_view_sync_callback(dualViewSyncFunction callback);
+  void extend_dual_view_modify_callback(dualViewModifyFunction callback);
+  void extend_declare_metadata_callback(declareMetadataFunction callback);
+
+  void extend_declare_output_type_callback(outputTypeDeclarationFunction callback);
+  void extend_declare_input_type_callback(inputTypeDeclarationFunction callback);
+  void extend_request_output_values_callback(requestValueFunction callback);
+  void extend_declare_optimization_goal_callback(
+          optimizationGoalDeclarationFunction callback);
+  void extend_end_context_callback(contextEndFunction callback);
+  void extend_begin_context_callback(contextBeginFunction callback);
+
+} // namespace Dogpark
+
 }  // namespace Experimental
 
 namespace Experimental {

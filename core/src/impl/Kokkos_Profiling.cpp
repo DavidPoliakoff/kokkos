@@ -825,6 +825,609 @@ void resume_tools() { current_callbacks = backup_callbacks; }
 
 EventSet get_callbacks() { return current_callbacks; }
 void set_callbacks(EventSet new_events) { current_callbacks = new_events; }
+
+namespace Dogpark {
+
+    template<typename MV, typename... Args>
+    struct data_persistent_multi_callback;
+    template<typename MV, typename... Args>
+    struct data_persistent_multi_callback <multi_callback<MV>, Args...> {
+      using type = std::vector<std::tuple<MV, Args...>>;
+    };
+    multi_callback<initFunction> init_callback_vector;
+    multi_callback<finalizeFunction> finalize_callback_vector;
+    multi_callback<parseArgsFunction> parse_args_callback_vector;
+    multi_callback<printHelpFunction> print_help_callback_vector;
+    data_persistent_multi_callback<multi_callback<beginFunction>, uint64_t>::type begin_parallel_for_callback_vector;
+    //data_persistent_multi_callback<multi_callback<endFunction>, uint64_t> end_parallel_for_callback_vector;
+    multi_callback<endFunction> end_parallel_for_callback_vector;
+    data_persistent_multi_callback<multi_callback<beginFunction>, uint64_t>::type begin_parallel_reduce_callback_vector;
+    //data_persistent_multi_callback<multi_callback<endFunction>, uint64_t> end_parallel_reduce_callback_vector;
+    multi_callback<endFunction> end_parallel_reduce_callback_vector;
+    data_persistent_multi_callback<multi_callback<beginFunction>, uint64_t>::type begin_parallel_scan_callback_vector;
+    //data_persistent_multi_callback<multi_callback<endFunction>, uint64_t> end_parallel_scan_callback_vector;
+    multi_callback<endFunction> end_parallel_scan_callback_vector;
+    multi_callback<pushFunction> push_region_callback_vector;
+    multi_callback<popFunction> pop_region_callback_vector;
+    multi_callback<allocateDataFunction> allocate_data_callback_vector;
+    multi_callback<deallocateDataFunction> deallocate_data_callback_vector;
+    multi_callback<createProfileSectionFunction> create_profile_section_callback_vector;
+    multi_callback<startProfileSectionFunction> start_profile_section_callback_vector;
+    multi_callback<stopProfileSectionFunction> stop_profile_section_callback_vector;
+    multi_callback<destroyProfileSectionFunction> destroy_profile_section_callback_vector;
+    multi_callback<profileEventFunction> profile_event_callback_vector;
+    multi_callback<beginDeepCopyFunction> begin_deep_copy_callback_vector;
+    multi_callback<endDeepCopyFunction> end_deep_copy_callback_vector;
+    multi_callback<beginFenceFunction> begin_fence_callback_vector;
+    multi_callback<endFenceFunction> end_fence_callback_vector;
+    multi_callback<dualViewSyncFunction> dual_view_sync_callback_vector;
+    multi_callback<dualViewModifyFunction> dual_view_modify_callback_vector;
+    multi_callback<declareMetadataFunction> declare_metadata_callback_vector;
+
+    multi_callback<outputTypeDeclarationFunction> declare_output_type_callback_vector;
+    multi_callback<inputTypeDeclarationFunction> declare_input_type_callback_vector;
+    multi_callback<requestValueFunction> request_output_values_callback_vector;
+    multi_callback<optimizationGoalDeclarationFunction> declare_optimization_goal_callback_vector;
+    multi_callback<contextEndFunction> end_context_callback_vector;
+    multi_callback<contextBeginFunction> begin_context_callback_vector;
+
+    void extend_init_callback(initFunction callback) {
+      static bool hijack;
+      if(!hijack){
+        hijack = true;
+        auto old_callback = current_callbacks.init;
+        current_callbacks.init = [](const int seq, const uint64_t version, const uint32_t ninfos, Kokkos_Profiling_KokkosPDeviceInfo* infos) {
+            for(auto cb: init_callback_vector){
+                cb(seq, version, ninfos, infos);
+            }
+        };
+        if(old_callback){
+          init_callback_vector.push_back(old_callback);
+        }
+      }
+      init_callback_vector.push_back(callback);
+    }
+    void extend_finalize_callback(finalizeFunction callback) {
+        static bool hijack;
+        if(!hijack){
+            hijack = true;
+            auto old_callback = current_callbacks.finalize;
+            current_callbacks.finalize = []() {
+                for(auto cb: finalize_callback_vector){
+                    cb();
+                }
+            };
+            if(old_callback){
+                finalize_callback_vector.push_back(old_callback);
+            }
+        }
+        finalize_callback_vector.push_back(callback);
+    }
+    void extend_parse_args_callback(parseArgsFunction callback){
+        static bool hijack;
+        if(!hijack){
+            hijack = true;
+            auto old_callback = current_callbacks.parse_args;
+            current_callbacks.parse_args = [](int n, char** args) {
+                for(auto cb: parse_args_callback_vector){
+                    cb(n, args);
+                }
+            };
+            if(old_callback){
+                parse_args_callback_vector.push_back(old_callback);
+            }
+        }
+        parse_args_callback_vector.push_back(callback);
+
+    }
+    void extend_print_help_callback(printHelpFunction callback){
+        static bool hijack;
+        if(!hijack){
+            hijack = true;
+            auto old_callback = current_callbacks.print_help;
+            current_callbacks.print_help = [](char* a0) {
+                for(auto cb: print_help_callback_vector){
+                    cb(a0);
+                }
+            };
+            if(old_callback){
+                print_help_callback_vector.push_back(old_callback);
+            }
+        }
+        print_help_callback_vector.push_back(callback);
+
+    }
+
+    void extend_begin_parallel_for_callback(beginFunction callback){
+        static bool hijack;
+        if(!hijack){
+            hijack = true;
+            auto old_callback = current_callbacks.begin_parallel_for;
+            current_callbacks.begin_parallel_for = [](const char* name, const uint32_t did, uint64_t* kid) {
+                for(auto& cb: begin_parallel_for_callback_vector){
+                    std::get<0>(cb)(name, did, kid);
+                    std::get<1>(cb) = *kid;
+                }
+            };
+            if(old_callback){
+                begin_parallel_for_callback_vector.push_back(std::make_tuple(old_callback,0));
+            }
+        }
+        begin_parallel_for_callback_vector.push_back(std::make_tuple(callback,0));
+
+    }
+    void extend_end_parallel_for_callback(endFunction callback){
+        static bool hijack;
+        if(!hijack){
+            hijack = true;
+            auto old_callback = current_callbacks.end_parallel_for;
+            current_callbacks.end_parallel_for = [](uint64_t kid) {
+                int x = 0;
+                for(auto cb: end_parallel_for_callback_vector){
+                    cb(std::get<1>(begin_parallel_for_callback_vector[x++]));
+                }
+            };
+            if(old_callback){
+                end_parallel_for_callback_vector.push_back(old_callback);
+            }
+        }
+        end_parallel_for_callback_vector.push_back(callback);
+
+    }
+    void extend_begin_parallel_reduce_callback(beginFunction callback){
+        static bool hijack;
+        if(!hijack){
+            hijack = true;
+            auto old_callback = current_callbacks.begin_parallel_reduce;
+            current_callbacks.begin_parallel_reduce = [](const char* name, const uint32_t did, uint64_t* kid) {
+                for(auto& cb: begin_parallel_reduce_callback_vector){
+                    std::get<0>(cb)(name, did, kid);
+                    std::get<1>(cb) = *kid;
+                }
+            };
+            if(old_callback){
+                begin_parallel_reduce_callback_vector.push_back(std::make_tuple(old_callback,0));
+            }
+        }
+        begin_parallel_reduce_callback_vector.push_back(std::make_tuple(callback,0));
+
+    }
+    void extend_end_parallel_reduce_callback(endFunction callback){
+        static bool hijack;
+        if(!hijack){
+            hijack = true;
+            auto old_callback = current_callbacks.end_parallel_reduce;
+            current_callbacks.end_parallel_reduce = [](uint64_t kid) {
+                int x = 0;
+                for(auto cb: end_parallel_reduce_callback_vector){
+                    cb(std::get<1>(begin_parallel_reduce_callback_vector[x++]));
+                }
+            };
+            if(old_callback){
+                end_parallel_reduce_callback_vector.push_back(old_callback);
+            }
+        }
+        end_parallel_reduce_callback_vector.push_back(callback);
+
+    }
+    void extend_begin_parallel_scan_callback(beginFunction callback){
+        static bool hijack;
+        if(!hijack){
+            hijack = true;
+            auto old_callback = current_callbacks.begin_parallel_scan;
+            current_callbacks.begin_parallel_scan = [](const char* name, const uint32_t did, uint64_t* kid) {
+                for(auto& cb: begin_parallel_scan_callback_vector){
+                    std::get<0>(cb)(name, did, kid);
+                    std::get<1>(cb) = *kid;
+                }
+            };
+            if(old_callback){
+                begin_parallel_scan_callback_vector.push_back(std::make_tuple(old_callback,0));
+            }
+        }
+        begin_parallel_scan_callback_vector.push_back(std::make_tuple(callback,0));
+
+    }
+    void extend_end_parallel_scan_callback(endFunction callback){
+        static bool hijack;
+        if(!hijack){
+            hijack = true;
+            auto old_callback = current_callbacks.end_parallel_scan;
+            current_callbacks.end_parallel_scan = [](uint64_t kid) {
+                int x = 0;
+                for(auto cb: end_parallel_scan_callback_vector){
+                    cb(std::get<1>(begin_parallel_scan_callback_vector[x++]));
+                }
+            };
+            if(old_callback){
+                end_parallel_scan_callback_vector.push_back(old_callback);
+            }
+        }
+        end_parallel_scan_callback_vector.push_back(callback);
+
+    }
+    void extend_push_region_callback(pushFunction callback){
+        static bool hijack;
+        if(!hijack){
+            hijack = true;
+            auto old_callback = current_callbacks.push_region;
+            current_callbacks.push_region = [](const char* name) {
+                for(auto cb: push_region_callback_vector){
+                    cb(name);
+                }
+            };
+            if(old_callback){
+                push_region_callback_vector.push_back(old_callback);
+            }
+        }
+        push_region_callback_vector.push_back(callback);
+
+    }
+    void extend_pop_region_callback(popFunction callback){
+        static bool hijack;
+        if(!hijack){
+            hijack = true;
+            auto old_callback = current_callbacks.pop_region;
+            current_callbacks.pop_region = []() {
+                for(auto cb: pop_region_callback_vector){
+                    cb();
+                }
+            };
+            if(old_callback){
+                pop_region_callback_vector.push_back(old_callback);
+            }
+        }
+        pop_region_callback_vector.push_back(callback);
+
+    }
+    void extend_allocate_data_callback(allocateDataFunction callback){
+        static bool hijack;
+        if(!hijack){
+            hijack = true;
+            auto old_callback = current_callbacks.allocate_data;
+            current_callbacks.allocate_data = [](SpaceHandle hand, const char* name, const void* ptr, const uint64_t size) {
+                for(auto cb: allocate_data_callback_vector){
+                    cb(hand, name, ptr, size);
+                }
+            };
+            if(old_callback){
+                allocate_data_callback_vector.push_back(old_callback);
+            }
+        }
+        allocate_data_callback_vector.push_back(callback);
+
+    }
+    void extend_deallocate_data_callback(deallocateDataFunction callback){
+        static bool hijack;
+        if(!hijack){
+            hijack = true;
+            auto old_callback = current_callbacks.deallocate_data;
+            current_callbacks.deallocate_data = [](SpaceHandle hand, const char* name, const void* ptr, const uint64_t size) {
+                for(auto cb: deallocate_data_callback_vector){
+                    cb(hand, name, ptr, size);
+                }
+            };
+            if(old_callback){
+                deallocate_data_callback_vector.push_back(old_callback);
+            }
+        }
+        deallocate_data_callback_vector.push_back(callback);
+
+    }
+    void extend_create_profile_section_callback(createProfileSectionFunction callback){
+        static bool hijack;
+        if(!hijack){
+            hijack = true;
+            auto old_callback = current_callbacks.create_profile_section;
+            current_callbacks.create_profile_section = [](const char* name, unsigned int* index) {
+                for(auto cb: create_profile_section_callback_vector){
+                    cb(name, index);
+                }
+            };
+            if(old_callback){
+                create_profile_section_callback_vector.push_back(old_callback);
+            }
+        }
+        create_profile_section_callback_vector.push_back(callback);
+
+    }
+    void extend_start_profile_section_callback(startProfileSectionFunction callback){
+        static bool hijack;
+        if(!hijack){
+            hijack = true;
+            auto old_callback = current_callbacks.start_profile_section;
+            current_callbacks.start_profile_section = [](unsigned int index) {
+                for(auto cb: start_profile_section_callback_vector){
+                    cb( index);
+                }
+            };
+            if(old_callback){
+                start_profile_section_callback_vector.push_back(old_callback);
+            }
+        }
+        start_profile_section_callback_vector.push_back(callback);
+
+    }
+    void extend_stop_profile_section_callback(stopProfileSectionFunction callback){
+        static bool hijack;
+        if(!hijack){
+            hijack = true;
+            auto old_callback = current_callbacks.stop_profile_section;
+            current_callbacks.stop_profile_section = [](unsigned int index) {
+                for(auto cb: stop_profile_section_callback_vector){
+                    cb( index);
+                }
+            };
+            if(old_callback){
+                stop_profile_section_callback_vector.push_back(old_callback);
+            }
+        }
+        stop_profile_section_callback_vector.push_back(callback);
+
+    }
+    void extend_destroy_profile_section_callback(
+            destroyProfileSectionFunction callback){
+        static bool hijack;
+        if(!hijack){
+            hijack = true;
+            auto old_callback = current_callbacks.destroy_profile_section;
+            current_callbacks.destroy_profile_section = [](unsigned int index) {
+                for(auto cb: destroy_profile_section_callback_vector){
+                    cb( index);
+                }
+            };
+            if(old_callback){
+                destroy_profile_section_callback_vector.push_back(old_callback);
+            }
+        }
+        destroy_profile_section_callback_vector.push_back(callback);
+
+    }
+    void extend_profile_event_callback(profileEventFunction callback){
+        static bool hijack;
+        if(!hijack){
+            hijack = true;
+            auto old_callback = current_callbacks.profile_event;
+            current_callbacks.profile_event = [](const char* name) {
+                for(auto cb: profile_event_callback_vector){
+                    cb(name);
+                }
+            };
+            if(old_callback){
+                profile_event_callback_vector.push_back(old_callback);
+            }
+        }
+        profile_event_callback_vector.push_back(callback);
+
+    }
+    void extend_begin_deep_copy_callback(beginDeepCopyFunction callback){
+        static bool hijack;
+        if(!hijack){
+            hijack = true;
+            auto old_callback = current_callbacks.begin_deep_copy;
+            current_callbacks.begin_deep_copy = [](SpaceHandle dh, const char* dn, const void* dp, SpaceHandle sh, const char* sn, const void* sp, const uint64_t size) {
+                for(auto cb: begin_deep_copy_callback_vector){
+                    cb(dh, dn, dp, sh, sn, sp, size);
+                }
+            };
+            if(old_callback){
+                begin_deep_copy_callback_vector.push_back(old_callback);
+            }
+        }
+        begin_deep_copy_callback_vector.push_back(callback);
+
+    }
+    void extend_end_deep_copy_callback(endDeepCopyFunction callback){
+        static bool hijack;
+        if(!hijack){
+            hijack = true;
+            auto old_callback = current_callbacks.end_deep_copy;
+            current_callbacks.end_deep_copy = []() {
+                for(auto cb: end_deep_copy_callback_vector){
+                    cb();
+                }
+            };
+            if(old_callback){
+                end_deep_copy_callback_vector.push_back(old_callback);
+            }
+        }
+        end_deep_copy_callback_vector.push_back(callback);
+
+    }
+    void extend_begin_fence_callback(beginFenceFunction callback){
+        static bool hijack;
+        if(!hijack){
+            hijack = true;
+            auto old_callback = current_callbacks.begin_fence;
+            current_callbacks.begin_fence = [](const char* name, const uint32_t did, uint64_t* fid) {
+                for(auto cb: begin_fence_callback_vector){
+                    cb(name, did, fid);
+                }
+            };
+            if(old_callback){
+                begin_fence_callback_vector.push_back(old_callback);
+            }
+        }
+        begin_fence_callback_vector.push_back(callback);
+
+    }
+    void extend_end_fence_callback(endFenceFunction callback){
+        static bool hijack;
+        if(!hijack){
+            hijack = true;
+            auto old_callback = current_callbacks.end_fence;
+            current_callbacks.end_fence = [](uint64_t fid) {
+                for(auto cb: end_fence_callback_vector){
+                    cb(fid);
+                }
+            };
+            if(old_callback){
+                end_fence_callback_vector.push_back(old_callback);
+            }
+        }
+        end_fence_callback_vector.push_back(callback);
+
+    }
+    void extend_dual_view_sync_callback(dualViewSyncFunction callback){
+        static bool hijack;
+        if(!hijack){
+            hijack = true;
+            auto old_callback = current_callbacks.sync_dual_view;
+            current_callbacks.sync_dual_view = [](const char* name, const void* const ptr, bool onDevice) {
+                for(auto cb: dual_view_sync_callback_vector){
+                    cb(name, ptr, onDevice);
+                }
+            };
+            if(old_callback){
+                dual_view_sync_callback_vector.push_back(old_callback);
+            }
+        }
+        dual_view_sync_callback_vector.push_back(callback);
+
+    }
+    void extend_dual_view_modify_callback(dualViewModifyFunction callback){
+        static bool hijack;
+        if(!hijack){
+            hijack = true;
+            auto old_callback = current_callbacks.modify_dual_view;
+            current_callbacks.modify_dual_view = [](const char* name, const void* const ptr, bool onDevice) {
+                for(auto cb: dual_view_modify_callback_vector){
+                    cb(name, ptr, onDevice);
+                }
+            };
+            if(old_callback){
+                dual_view_modify_callback_vector.push_back(old_callback);
+            }
+        }
+        dual_view_modify_callback_vector.push_back(callback);
+
+    }
+    void extend_declare_metadata_callback(declareMetadataFunction callback){
+        static bool hijack;
+        if(!hijack){
+            hijack = true;
+            auto old_callback = current_callbacks.declare_metadata;
+            current_callbacks.declare_metadata = [](const char* name, const char* value) {
+                for(auto cb: declare_metadata_callback_vector){
+                    cb(name, value);
+                }
+            };
+            if(old_callback){
+                declare_metadata_callback_vector.push_back(old_callback);
+            }
+        }
+        declare_metadata_callback_vector.push_back(callback);
+
+    }
+
+    void extend_declare_output_type_callback(outputTypeDeclarationFunction callback){
+        static bool hijack;
+        if(!hijack){
+            hijack = true;
+            auto old_callback = current_callbacks.declare_output_type;
+            current_callbacks.declare_output_type = [](const char* name, const size_t id, VariableInfo* info) {
+                for(auto cb: declare_output_type_callback_vector){
+                    cb(name, id, info);
+                }
+            };
+            if(old_callback){
+                declare_output_type_callback_vector.push_back(old_callback);
+            }
+        }
+        declare_output_type_callback_vector.push_back(callback);
+
+    }
+    void extend_declare_input_type_callback(inputTypeDeclarationFunction callback){
+        static bool hijack;
+        if(!hijack){
+            hijack = true;
+            auto old_callback = current_callbacks.declare_output_type;
+            current_callbacks.declare_output_type = [](const char* name, const size_t id, VariableInfo* info) {
+                for(auto cb: declare_output_type_callback_vector){
+                    cb(name, id, info);
+                }
+            };
+            if(old_callback){
+                declare_output_type_callback_vector.push_back(old_callback);
+            }
+        }
+        declare_output_type_callback_vector.push_back(callback);
+
+    }
+    void extend_request_output_values_callback(requestValueFunction callback){
+        static bool hijack;
+        if(!hijack){
+            hijack = true;
+            auto old_callback = current_callbacks.request_output_values;
+            current_callbacks.request_output_values = [](const size_t id, const size_t num_ins,
+                                                         const VariableValue *ins, const size_t num_outs,
+                                                         VariableValue *outs) {
+                for (auto cb: request_output_values_callback_vector) {
+                    cb(id, num_ins, ins, num_outs, outs);
+                }
+            };
+            if (old_callback) {
+                request_output_values_callback_vector.push_back(old_callback);
+            }
+        }
+        request_output_values_callback_vector.push_back(callback);
+
+    }
+    void extend_declare_optimization_goal_callback(
+            optimizationGoalDeclarationFunction callback){
+        static bool hijack;
+        if(!hijack){
+            hijack = true;
+            auto old_callback = current_callbacks.declare_optimization_goal;
+            current_callbacks.declare_optimization_goal = [](const size_t id, OptimizationGoal goal) {
+                for (auto cb: declare_optimization_goal_callback_vector) {
+                    cb(id, goal);
+                }
+            };
+            if (old_callback) {
+                declare_optimization_goal_callback_vector.push_back(old_callback);
+            }
+        }
+        declare_optimization_goal_callback_vector.push_back(callback);
+
+    }
+    void extend_end_context_callback(contextEndFunction callback){
+
+        static bool hijack;
+        if(!hijack){
+            hijack = true;
+            auto old_callback = current_callbacks.end_tuning_context;
+            current_callbacks.end_tuning_context = [](size_t id, VariableValue value) {
+                for (auto cb: end_context_callback_vector) {
+                    cb(id, value);
+                }
+            };
+            if (old_callback) {
+                end_context_callback_vector.push_back(old_callback);
+            }
+        }
+        end_context_callback_vector.push_back(callback);
+    }
+    void extend_begin_context_callback(contextBeginFunction callback){
+
+        static bool hijack;
+        if(!hijack){
+            hijack = true;
+            auto old_callback = current_callbacks.begin_tuning_context;
+            current_callbacks.begin_tuning_context = [](size_t id) {
+                for (auto cb: begin_context_callback_vector) {
+                    cb(id);
+                }
+            };
+            if (old_callback) {
+                begin_context_callback_vector.push_back(old_callback);
+            }
+        }
+        begin_context_callback_vector.push_back(callback);
+    }
+
+} // namespace Dogpark
+
 }  // namespace Experimental
 }  // namespace Tools
 
@@ -843,7 +1446,7 @@ void beginParallelScan(const std::string& kernelPrefix, const uint32_t devID,
                        uint64_t* kernelID) {
   Kokkos::Tools::beginParallelScan(kernelPrefix, devID, kernelID);
 }
-void endParallelFor(const uint64_t kernelID) {
+void endParallhlFor(const uint64_t kernelID) {
   Kokkos::Tools::endParallelFor(kernelID);
 }
 void endParallelReduce(const uint64_t kernelID) {

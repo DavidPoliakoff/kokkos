@@ -51,6 +51,25 @@
 
 namespace Test {
 
-TEST(defaultdevicetype, development_test) {}
+TEST(defaultdevicetype, development_test) {
+
+   Kokkos::Tools::Experimental::set_begin_parallel_for_callback([](const char* name, const uint32_t, uint64_t* kID){
+      std::cout << "Dogs "<<name<<std::endl;
+      *kID = 1;
+   });
+   Kokkos::Tools::Experimental::Dogpark::extend_begin_parallel_for_callback([](const char* name, const uint32_t, uint64_t* kID){
+       std::cout << "Moar Dogs "<<name<<std::endl;
+       *kID = 2;
+   });
+   Kokkos::Tools::Experimental::set_end_parallel_for_callback([](uint64_t kID){
+       std::cout << "Dogs "<<kID<<std::endl;
+   });
+   Kokkos::Tools::Experimental::Dogpark::extend_end_parallel_for_callback([](uint64_t kID){
+       std::cout << "Moar Dogs "<<kID<<std::endl;
+   });
+
+   Kokkos::parallel_for("DOGS",Kokkos::RangePolicy<>(0,1), [&](const int){});
+   Kokkos::Tools::pushRegion("dogsdogs");
+}
 
 }  // namespace Test
